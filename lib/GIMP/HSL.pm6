@@ -15,6 +15,7 @@ class GIMP::HSL {
     hue        h
     saturation s
     lightness  l
+    alpha      a
   >;
 
   submethod BUILD ( :$gimp-hsl ) {
