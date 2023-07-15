@@ -3,6 +3,10 @@ use v6.c;
 use GIMP::Raw::Types;
 use GIMP::Raw::RGB;
 
+use GIMP::CMYK;
+use GIMP::HSV;
+use GIMP::HSL;
+
 # BOXED
 
 class GIMP::RGB {
@@ -338,6 +342,47 @@ class GIMP::RGB {
   method subtract (GimpRGB() $rgb2) {
     gimp_rgb_subtract($!g-rgb, $rgb2);
     self;
+  }
+
+  proto method rgb_to_cmyk (|) {
+  { * }
+
+  multi method rgb_to_cmyk (Num() $pullout) {
+    samewith( $pullout, GimpCMYK.new );
+  }
+  multi method rgb_to_cmyk (Num() $pullout, GimpCMYK() $cmyk, :$raw = False) {
+    return Nil unless $cmyk;
+
+    my gdouble $p = $pullout;
+
+    gimp_rgb_to_cmyk($rgb, $pullout, $cmyk);
+    propReturnObject( $cmyk, $raw, GIMP::CMYK.getTypePair )
+  }
+
+  proto method rgb_to_hsl (|)
+  { * }
+
+  multi method rgb_to_hsl {
+    samewith( GimpHSL.new );
+  }
+  multi method rgb_to_hsl (GimpHSL() $hsl, :$raw = False) {
+    return Nil unless $hsl;
+
+    gimp_rgb_to_hsl($rgb, $hsl);
+    propReturnObject( $cmyk, $raw, GIMP::HSL.getTypePair )
+  }
+
+  proto method rgb_to_hsv (|)
+  { * }
+
+  multi method rgb_to_hsv {
+    samewith( GimpHSV.new );
+  }
+  method rgb_to_hsv (GimpHSV() $hsv, :$raw = False) {
+    return Nil unless $hsv;
+    
+    gimp_rgb_to_hsv($rgb, $hsv);
+    propReturnObject( $cmyk, $raw, GIMP::HSV.getTypePair )
   }
 
 }

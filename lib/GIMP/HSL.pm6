@@ -5,6 +5,7 @@ use Method::Also;
 use NativeCall;
 
 use GIMP::Raw::Types;
+use GIMP::Raw::Colorspace;
 
 use GIMP::Roles::Implementor;
 
@@ -28,6 +29,10 @@ class GIMP::HSL {
 
   method GIMP::Raw::Structs::GimpHSL
   { $!g-hsl }
+  method GIMP::Raw::Structs::GimpRGB
+  { self.to_rgb( :raw ) }
+  method GIMP::Raw::Structs::GimpHSV
+  { self.to_rgb.to_hsv( :raw ) }
 
   proto method new (|)
   { * }
@@ -83,6 +88,24 @@ class GIMP::HSL {
     my gdouble $aa = $a;
 
     gimp_hsl_set_alpha($!g-hsl, $aa);
+  }
+
+  proto method to_rgb (|)
+    is also<
+      to-rgb
+      rgb
+      to-rgba
+      rgba
+    >
+  { * }
+
+  method to_rgb ( :$raw = False ) {
+    samewith(Gimp::RGB.new);
+  }
+  method to_rgb (GimpRGB() $rgb, :$raw = False) {
+    gimp_hsl_to_rgb($hsl, $rgb);
+
+    propReturnObject($rgb, $raw, ::('Gimp::RGB').getTypePair
   }
 }
 

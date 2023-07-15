@@ -2,6 +2,7 @@ use v6.c;
 
 use GIMP::Raw::Types;
 use GIMP::Raw::CMYK;
+use GIMP::Raw::Colorspace;
 
 use GLib::Roles::Implementor;
 
@@ -25,7 +26,16 @@ class GIMP::CMYK {
   }
 
   method GIMP::Raw::Structs::GimpCMYK
-  { $!g-cmyk }
+  { $!g-cmyk                       }
+
+  method GIMP::Raw::Structs::GimpRGB
+  { $!g-cmyk.to_rgb( :raw )        }
+
+  method GIMP::Raw::Structs::GimpHSL
+  { $!g-cmyk.to_rgb.to_hsl( :raw   }
+  
+  method GIMP::Raw::Structs::GimpHSV
+  { $!g-cmyk.to_rgb.to_hsv( :raw ) }
 
   multi method new (GimpCMYK $gimp-cmyk) {
     $gimp-cmyk ?? self.bless( :$gimp-cmyk ) !! Nil;
@@ -151,6 +161,11 @@ class GIMP::CMYK {
     my uint8 ($c, $m, $y, $k) = ($cyan, $magenta, $yellow, $black);
 
     gimp_cmyk_set_uchar($!g-cmyk, $c, $m, $y, $k);
+  }
+
+  method cmyk_to_rgb (GimpRGB() $rgb, :$raw = False) {
+    gimp_cmyk_to_rgb($cmyk, $rgb);
+    propReturnObject($rgb, $raw, ::('Gimp::RGB').getTypePair)
   }
 
 }
