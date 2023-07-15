@@ -434,6 +434,11 @@ class GimpHSL is repr<CStruct> is export {
 	has gdouble $.s is rw;
 	has gdouble $.l is rw;
 	has gdouble $.a is rw;
+
+	method hue        is rw { $!h }
+	method saturation is rw { $!s }
+	method lightness  is rw { $!l }
+	method alpha      is rw { $!a }
 }
 
 class GimpHintBox is repr<CStruct> is export {
