@@ -7,4 +7,3 @@
 ### /usr/src/gimp/libgimpbase/gimpsignal.h
 ### /usr/src/gimp/libgimpbase/gimpreloc.h
 ### /usr/src/gimp/libgimpbase/gimplimits.h
-### /usr/src/gimp/libgimpbase/gimpchecks.h
