@@ -22,6 +22,32 @@ class GimpRGB is repr<CStruct> is export {
 	method green is rw { $!g }
 	method blue  is rw { $!b }
 	method alpha is rw { $!a }
+
+	method new (Num() $rr, Num() $gg, Num() $bb, Num() $aa) {
+		my gdouble ($r, $g, $b, $a) = ($rr, $gg, $bb, $aa);
+
+		self.bless(:$r, :$g, :$b, :$a );
+	}
+}
+
+our %GLOBAL-COLOR is export;
+
+INIT {
+	%GLOBAL-COLOR<LIGHT_COLOR_DARK>  = GimpRGB.new(0.8, 0.8, 0.8, 1.0);
+	%GLOBAL-COLOR<LIGHT_COLOR_LIGHT> = GimpRGB.new(1.0, 1.0, 1.0, 1.0);
+	%GLOBAL-COLOR<GRAY_COLOR_DARK>   = GimpRGB.new(0.4, 0.4, 0.4, 1.0);
+	%GLOBAL-COLOR<GRAY_COLOR_LIGHT>  = GimpRGB.new(0.6, 0.6, 0.6, 1.0);
+	%GLOBAL-COLOR<DARK_COLOR_DARK>   = GimpRGB.new(0.0, 0.0, 0.0, 1.0);
+	%GLOBAL-COLOR<DARK_COLOR_LIGHT>  = GimpRGB.new(0.2, 0.2, 0.2, 1.0);
+	%GLOBAL-COLOR<WHITE_COLOR>       = GimpRGB.new(1.0, 1.0, 1.0, 1.0);
+	%GLOBAL-COLOR<GRAY_COLOR>        = GimpRGB.new(0.5, 0.5, 0.5, 1.0);
+	%GLOBAL-COLOR<BLACK_COLOR>       = GimpRGB.new(0.0, 0.0, 0.0, 1.0);
+
+	# cw: At INIT, .pairs is still HOT during iteration, so we have to save
+	#     of a stable copy before we loop.
+	for (my @k = %GLOBAL-COLOR.pairs) {
+		%GLOBAL-COLOR{ .key.subst('_', '-', :g) } = .value;
+	}
 }
 
 class GPConfig is repr<CStruct> is export {
