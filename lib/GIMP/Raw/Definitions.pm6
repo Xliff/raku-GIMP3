@@ -9,6 +9,17 @@ unit package GIMP::Raw::Definitions;
 constant gimpcolor is export = 'gimpcolor-3.0',v0;
 constant gimpbase  is export = 'gimpbase-3.0',v0;
 
+constant GIMP_MIN_IMAGE_SIZE is export = 1;
+constant GIMP_MAX_IMAGE_SIZE is export = 524288;    #  2^19
+constant GIMP_MIN_RESOLUTION is export = 5e-3;      #  shouldn't display as 0.000
+constant GIMP_MAX_RESOLUTION is export = 1048576.0;
+constant GIMP_MAX_MEMSIZE    is export = 1 +< 42;   #  4 terabyte;
+
+constant GIMP_CHECK_SIZE     is export =   8;
+constant GIMP_CHECK_SIZE_SM  is export =   4;
+constant GIMP_CHECK_DARK     is export = 0.4;
+constant GIMP_CHECK_LIGHT    is export = 0.6;
+
 class GPParam            is repr<CPointer> does GLib::Roles::Pointers is export { }
 class GPParamDef         is repr<CPointer> does GLib::Roles::Pointers is export { }
 class GimpMetadata       is repr<CPointer> does GLib::Roles::Pointers is export { }
