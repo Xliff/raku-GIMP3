@@ -5,7 +5,7 @@ use GTK::Raw::Units;
 
 # Registerable Enum
 
-class GIMP::Units {
+class GIMP::Unit {
   has GimpUnit $!g-u;
 
   submethod BUILD ( :$gimp-unit ) {
