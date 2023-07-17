@@ -142,7 +142,7 @@ class GIMP::Thumbnail {
     is g-property
     is also<image_state>
   {
-    my $gv = GLib::Value.new( GIMP::Enums::Thumb::State.get_type );
+    my $gv = GLib::Value.new( GIMP::Raw::Enums::ThumbState.get_type );
     Proxy.new(
       FETCH => sub ($) {
         self.prop_get('image-state', $gv);
@@ -173,7 +173,14 @@ class GIMP::Thumbnail {
   }
 
   # Type: string
-  method image-uri is rw  is g-property is also<image_uri> {
+  method image-uri
+    is rw
+    is g-property
+    is also<
+      image_uri
+      uri
+    >
+  {
     my $gv = GLib::Value.new( G_TYPE_STRING );
     Proxy.new(
       FETCH => sub ($) {
@@ -193,7 +200,7 @@ class GIMP::Thumbnail {
     is g-property
     is also<thumb_state>
   {
-    my $gv = GLib::Value.new( GIMP::Enums::Thumb::State.get_type );
+    my $gv = GLib::Value.new( GIMP::Raw::Enums::ThumbState.get_type );
     Proxy.new(
       FETCH => sub ($) {
         self.prop_get('thumb-state', $gv);
@@ -244,10 +251,13 @@ class GIMP::Thumbnail {
     my GimpThumbSize $s = $size;
 
     propReturnObject(
-      gimp_thumbnail_load_thumb($!g-t, $size, $error),
+      ( my $t = gimp_thumbnail_load_thumb($!g-t, $size, $error) ),
       $raw,
       |GDK::Pixbuf.getTypePair
     );
+
+    $t.gist.say;
+    $t;
   }
 
   method peek_image ( :$enum = True ) is also<peek-image> {
@@ -333,6 +343,10 @@ class GIMP::Thumbnail {
 
   method set_uri (Str() $uri) is also<set-uri> {
     so gimp_thumbnail_set_uri($!g-t, $uri);
+  }
+
+  method debug {
+    $!g-t.debug;
   }
 
 }
