@@ -47,7 +47,8 @@ INIT {
 
 	# cw: At INIT, .pairs is still HOT during iteration, so we have to save
 	#     of a stable copy before we loop.
-	for (my @k = %GLOBAL-COLOR.pairs) {
+	my @pc = %GLOBAL-COLOR.pairs;
+	for @pc {
 		%GLOBAL-COLOR{ .key.subst('_', '-', :g) } = .value;
 	}
 }
