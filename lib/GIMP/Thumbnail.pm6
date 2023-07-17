@@ -251,13 +251,10 @@ class GIMP::Thumbnail {
     my GimpThumbSize $s = $size;
 
     propReturnObject(
-      ( my $t = gimp_thumbnail_load_thumb($!g-t, $size, $error) ),
+      gimp_thumbnail_load_thumb($!g-t, $size, $error),
       $raw,
       |GDK::Pixbuf.getTypePair
     );
-
-    $t.gist.say;
-    $t;
   }
 
   method peek_image ( :$enum = True ) is also<peek-image> {
