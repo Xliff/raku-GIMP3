@@ -10,6 +10,7 @@ constant gimpcolor   is export = 'gimpcolor-3.0',v0;
 constant gimpbase    is export = 'gimpbase-3.0',v0;
 constant gimpthumb   is export = 'gimpthumb-3.0',v0;
 constant gimpwidgets is export = 'gimpwidgets-3.0',v0;
+constant gimp        is export = 'gimp-3.0',v0;
 
 constant GIMP_MIN_IMAGE_SIZE is export = 1;
 constant GIMP_MAX_IMAGE_SIZE is export = 524288;    #  2^19
@@ -24,4 +25,11 @@ constant GIMP_CHECK_LIGHT    is export = 0.6;
 
 class GPParam            is repr<CPointer> does GLib::Roles::Pointers is export { }
 class GPParamDef         is repr<CPointer> does GLib::Roles::Pointers is export { }
+class GimpImage          is repr<CPointer> does GLib::Roles::Pointers is export { }
+class GimpItem           is repr<CPointer> does GLib::Roles::Pointers is export { }
 class GimpMetadata       is repr<CPointer> does GLib::Roles::Pointers is export { }
+class GimpLayer          is repr<CPointer> does GLib::Roles::Pointers is export { }
+class GimpDrawable       is repr<CPointer> does GLib::Roles::Pointers is export { }
+class GimpChannel        is repr<CPointer> does GLib::Roles::Pointers is export { }
+class GimpVectors        is repr<CPointer> does GLib::Roles::Pointers is export { }
+class GimpSelection      is repr<CPointer> does GLib::Roles::Pointers is export { }
