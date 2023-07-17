@@ -941,7 +941,7 @@ use NativeCall;
 
 use GLib::Raw::Subs;
 
-class GIMP::Enums::ThumbState {
+class ThumbState {
 
   method get_type {
     sub gimp_thumb_state_get_type
