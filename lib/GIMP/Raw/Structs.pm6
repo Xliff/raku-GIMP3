@@ -10,6 +10,8 @@ use GTK::Raw::Structs;
 use GIMP::Raw::Definitions;
 use GIMP::Raw::Enums;
 
+use GLib::Roles::Pointers;
+
 unit package GIMP::Raw::Structs;
 
 class GimpRGB is repr<CStruct> is export {
@@ -182,22 +184,22 @@ class GimpArray is repr<CStruct> is export {
 }
 
 class GimpPreview is repr<CStruct> is export {
-	has GtkBox   $!parent_instance;
+	HAS GtkBox   $!parent_instance;
 	has gpointer $!priv           ;
 }
 
 class GimpAspectPreview is repr<CStruct> is export {
-	has GimpPreview $!parent_instance;
+	HAS GimpPreview $!parent_instance;
 	has gpointer    $!priv           ;
 }
 
 class GimpProcedure is repr<CStruct> is export {
-	has GObject  $!parent_instance;
+	HAS GObject  $!parent_instance;
 	has gpointer $!priv           ;
 }
 
 class GimpBatchProcedure is repr<CStruct> is export {
-	has GimpProcedure $!parent_instance;
+	HAS GimpProcedure $!parent_instance;
 	has gpointer      $!priv           ;
 }
 
@@ -206,17 +208,17 @@ class GimpBatchProcedure is repr<CStruct> is export {
 # }
 
 class GimpBrowser is repr<CStruct> is export {
-	has GtkPaned $!parent_instance;
+	HAS GtkPaned $!parent_instance;
 	has gpointer $!priv           ;
 }
 
 class GimpBusyBox is repr<CStruct> is export {
-	has GtkBox   $!parent_instance;
+	HAS GtkBox   $!parent_instance;
 	has gpointer $!priv           ;
 }
 
 class GimpButton is repr<CStruct> is export {
-	has GtkButton $!parent_instance;
+	HAS GtkButton $!parent_instance;
 	has gpointer  $!priv           ;
 }
 
@@ -229,47 +231,47 @@ class GimpCMYK is repr<CStruct> is export {
 }
 
 class GimpCellRendererColor is repr<CStruct> is export {
-	has GtkCellRenderer $!parent_instance;
+	HAS GtkCellRenderer $!parent_instance;
 	has gpointer        $!priv           ;
 }
 
 class GimpCellRendererToggle is repr<CStruct> is export {
-	has GtkCellRendererToggle $!parent_instance;
+	HAS GtkCellRendererToggle $!parent_instance;
 	has gpointer              $!priv           ;
 }
 
 class GimpChainButton is repr<CStruct> is export {
-	has GtkGrid  $!parent_instance;
+	HAS GtkGrid  $!parent_instance;
 	has gpointer $!priv           ;
 }
 
 class GimpColorArea is repr<CStruct> is export {
-	has GtkDrawingArea $!parent_instance;
+	HAS GtkDrawingArea $!parent_instance;
 	has gpointer       $!priv           ;
 }
 
 class GimpColorButton is repr<CStruct> is export {
-	has GimpButton $!parent_instance;
+	HAS GimpButton $!parent_instance;
 	has gpointer   $!priv           ;
 }
 
 class GimpColorConfig is repr<CStruct> is export {
-	has GObject  $!parent_instance;
+	HAS GObject  $!parent_instance;
 	has gpointer $!priv           ;
 }
 
 class GimpColorDisplay is repr<CStruct> is export {
-	has GObject  $!parent_instance;
+	HAS GObject  $!parent_instance;
 	has gpointer $!priv           ;
 }
 
 class GimpColorDisplayStack is repr<CStruct> is export {
-	has GObject  $!parent_instance;
+	HAS GObject  $!parent_instance;
 	has gpointer $!priv           ;
 }
 
 class GimpColorHexEntry is repr<CStruct> is export {
-	has GtkEntry $!parent_instance;
+	HAS GtkEntry $!parent_instance;
 	has gpointer $!priv           ;
 }
 
@@ -286,7 +288,7 @@ class GimpHSV is repr<CStruct> is export {
 }
 
 class GimpColorSelector is repr<CStruct> is export {
-	has GtkBox                   $!parent_instance  ;
+	HAS GtkBox                   $!parent_instance  ;
 	has gpointer                 $!priv             ;
 	has gboolean                 $!toggles_visible  ;
 	has gboolean                 $!toggles_sensitive;
@@ -297,52 +299,52 @@ class GimpColorSelector is repr<CStruct> is export {
 }
 
 class GimpColorNotebook is repr<CStruct> is export {
-	has GimpColorSelector $!parent_instance;
+	HAS GimpColorSelector $!parent_instance;
 	has gpointer          $!priv           ;
 }
 
 class GimpColorProfile is repr<CStruct> is export {
-	has GObject  $!parent_instance;
+	HAS GObject  $!parent_instance;
 	has gpointer $!priv           ;
 }
 
 class GimpColorProfileChooserDialog is repr<CStruct> is export {
-	has GtkFileChooserDialog $!parent_instance;
+	HAS GtkFileChooserDialog $!parent_instance;
 	has gpointer             $!priv           ;
 }
 
 class GimpColorProfileComboBox is repr<CStruct> is export {
-	has GtkComboBox $!parent_instance;
+	HAS GtkComboBox $!parent_instance;
 	has gpointer    $!priv           ;
 }
 
 class GimpColorProfileStore is repr<CStruct> is export {
-	has GtkListStore $!parent_instance;
+	HAS GtkListStore $!parent_instance;
 	has gpointer     $!priv           ;
 }
 
 class GimpColorProfileView is repr<CStruct> is export {
-	has GtkTextView $!parent_instance;
+	HAS GtkTextView $!parent_instance;
 	has gpointer    $!priv           ;
 }
 
 class GimpColorScale is repr<CStruct> is export {
-	has GtkScale $!parent_instance;
+	HAS GtkScale $!parent_instance;
 	has gpointer $!priv           ;
 }
 
 class GimpColorSelection is repr<CStruct> is export {
-	has GtkBox   $!parent_instance;
+	HAS GtkBox   $!parent_instance;
 	has gpointer $!priv           ;
 }
 
 class GimpColorTransform is repr<CStruct> is export {
-	has GObject  $!parent_instance;
+	HAS GObject  $!parent_instance;
 	has gpointer $!priv           ;
 }
 
 class GimpController is repr<CStruct> is export {
-	has GObject  $!parent_instance;
+	HAS GObject  $!parent_instance;
 	has gpointer $!priv           ;
 	has Str      $!name           ;
 	has Str      $!state          ;
@@ -368,21 +370,21 @@ class GimpControllerEventValue is repr<CStruct> is export {
 }
 
 class GimpDialog is repr<CStruct> is export {
-	has GtkDialog $!parent_instance;
+	HAS GtkDialog $!parent_instance;
 	has gpointer  $!priv           ;
 }
 
 class GimpDisplay is repr<CStruct> is export {
-	has GObject  $!parent_instance;
+	HAS GObject  $!parent_instance;
 	has gpointer $!priv           ;
 }
 
 class GimpScrolledPreview is repr<CStruct> is export {
-	has GimpPreview $!parent_instance;
+	HAS GimpPreview $!parent_instance;
 }
 
 class GimpDrawablePreview is repr<CStruct> is export {
-	has GimpScrolledPreview $!parent_instance;
+	HAS GimpScrolledPreview $!parent_instance;
 	has gpointer            $!priv           ;
 }
 
@@ -400,12 +402,12 @@ class GimpEevlOptions is repr<CStruct> is export {
 }
 
 class GimpIntComboBox is repr<CStruct> is export {
-	has GtkComboBox $!parent_instance;
+	HAS GtkComboBox $!parent_instance;
 	has gpointer    $!priv           ;
 }
 
 class GimpEnumComboBox is repr<CStruct> is export {
-	has GimpIntComboBox $!parent_instance;
+	HAS GimpIntComboBox $!parent_instance;
 	has gpointer        $!priv           ;
 }
 
@@ -416,22 +418,22 @@ class GimpEnumDesc is repr<CStruct> is export {
 }
 
 class GimpEnumLabel is repr<CStruct> is export {
-	has GtkLabel $!parent_instance;
+	HAS GtkLabel $!parent_instance;
 	has gpointer $!priv           ;
 }
 
 class GimpIntStore is repr<CStruct> is export {
-	has GtkListStore $!parent_instance;
+	HAS GtkListStore $!parent_instance;
 	has gpointer     $!priv           ;
 }
 
 class GimpEnumStore is repr<CStruct> is export {
-	has GimpIntStore $!parent_instance;
+	HAS GimpIntStore $!parent_instance;
 	has gpointer     $!priv           ;
 }
 
 class GimpFileEntry is repr<CStruct> is export {
-	has GtkBox   $!parent_instance;
+	HAS GtkBox   $!parent_instance;
 	has gpointer $!priv           ;
 }
 
@@ -451,7 +453,7 @@ class GimpFlagsDesc is repr<CStruct> is export {
 }
 
 class GimpFrame is repr<CStruct> is export {
-	has GtkFrame $!parent_instance;
+	HAS GtkFrame $!parent_instance;
 	has gpointer $!priv           ;
 }
 
@@ -468,7 +470,7 @@ class GimpHSL is repr<CStruct> is export {
 }
 
 class GimpHintBox is repr<CStruct> is export {
-	has GtkBox   $!parent_instance;
+	HAS GtkBox   $!parent_instance;
 	has gpointer $!priv           ;
 }
 
@@ -482,7 +484,7 @@ class GimpImageProcedure is repr<CStruct> is export {
 # }
 
 class GimpIntRadioFrame is repr<CStruct> is export {
-	has GimpFrame $!parent_instance;
+	HAS GimpFrame $!parent_instance;
 }
 
 
@@ -496,7 +498,7 @@ class GimpLoadProcedure is repr<CStruct> is export {
 # }
 
 class GimpMemsizeEntry is repr<CStruct> is export {
-	has GtkBox   $!parent_instance;
+	HAS GtkBox   $!parent_instance;
 	has gpointer $!priv           ;
 }
 
@@ -515,7 +517,7 @@ class GimpModuleInfo is repr<CStruct> is export {
 }
 
 class GimpNumberPairEntry is repr<CStruct> is export {
-	has GtkEntry $!parent_instance;
+	HAS GtkEntry $!parent_instance;
 	has gpointer $!priv           ;
 }
 
@@ -527,12 +529,12 @@ class GimpObjectArray is repr<CStruct> is export {
 }
 
 class GimpOffsetArea is repr<CStruct> is export {
-	has GtkDrawingArea $!parent_instance;
+	HAS GtkDrawingArea $!parent_instance;
 	has gpointer       $!priv           ;
 }
 
 class GimpPDB is repr<CStruct> is export {
-	has GObject  $!parent_instance;
+	HAS GObject  $!parent_instance;
 	has gpointer $!priv           ;
 }
 
@@ -654,7 +656,7 @@ class GimpParasite is repr<CStruct> is export {
 }
 
 class GimpPathEditor is repr<CStruct> is export {
-	has GtkBox            $!parent_instance;
+	HAS GtkBox            $!parent_instance;
 	has gpointer          $!priv           ;
 	has GtkWidget         $!upper_hbox     ;
 	has GtkWidget         $!new_button     ;
@@ -670,53 +672,53 @@ class GimpPathEditor is repr<CStruct> is export {
 }
 
 class GimpPickButton is repr<CStruct> is export {
-	has GtkButton $!parent_instance;
+	HAS GtkButton $!parent_instance;
 	has gpointer  $!priv           ;
 }
 
 class GimpPickButtonPrivate is repr<CStruct> is export {
-	has GdkCursor $!cursor     ;
+	HAS GdkCursor $!cursor     ;
 	has GtkWidget $!grab_widget;
 }
 
 class GimpPlugIn is repr<CStruct> is export {
-	has GObject  $!parent_instance;
+	HAS GObject  $!parent_instance;
 	has gpointer $!priv           ;
 }
 
 class GimpPreviewArea is repr<CStruct> is export {
-	has GtkDrawingArea $!parent_instance;
+	HAS GtkDrawingArea $!parent_instance;
 	has gpointer       $!priv           ;
 }
 
 class GimpProcBrowserDialog is repr<CStruct> is export {
-	has GimpDialog $!parent_instance;
+	HAS GimpDialog $!parent_instance;
 	has gpointer   $!priv           ;
 }
 
 class GimpProcedureConfig is repr<CStruct> is export {
-	has GObject  $!parent_instance;
+	HAS GObject  $!parent_instance;
 	has gpointer $!priv           ;
 }
 
 class GimpProcedureDialog is repr<CStruct> is export {
-	has GimpDialog $!parent_instance;
+	HAS GimpDialog $!parent_instance;
 	has gpointer   $!priv           ;
 }
 
 class GimpProgressBar is repr<CStruct> is export {
-	has GtkProgressBar $!parent_instance  ;
+	HAS GtkProgressBar $!parent_instance  ;
 	has Str            $!progress_callback;
 	has gboolean       $!cancelable       ;
 }
 
 class GimpRuler is repr<CStruct> is export {
-	has GtkWidget $!parent_instance;
+	HAS GtkWidget $!parent_instance;
 	has gpointer  $!priv           ;
 }
 
 class GimpSaveProcedure is repr<CStruct> is export {
-	has GimpFileProcedure $!parent_instance;
+	HAS GimpFileProcedure $!parent_instance;
 	has gpointer          $!priv           ;
 }
 
@@ -725,22 +727,22 @@ class GimpSaveProcedure is repr<CStruct> is export {
 # }
 
 class GimpSaveProcedureDialog is repr<CStruct> is export {
-	has GimpProcedureDialog $!parent_instance;
+	HAS GimpProcedureDialog $!parent_instance;
 	has gpointer            $!priv           ;
 }
 
 class GimpSizeEntry is repr<CStruct> is export {
-	has GtkGrid  $!parent_instance;
+	HAS GtkGrid  $!parent_instance;
 	has gpointer $!priv           ;
 }
 
 class GimpSpinButton is repr<CStruct> is export {
-	has GtkSpinButton $!parent_instance;
+	HAS GtkSpinButton $!parent_instance;
 	has gpointer      $!priv           ;
 }
 
 class GimpSpinScale is repr<CStruct> is export {
-	has GimpSpinButton $!parent_instance;
+	HAS GimpSpinButton $!parent_instance;
 }
 
 # class GimpSpinScaleClass is repr<CStruct> is export {
@@ -748,14 +750,14 @@ class GimpSpinScale is repr<CStruct> is export {
 # }
 
 class GimpStringComboBox is repr<CStruct> is export {
-	has GtkComboBox $!parent_instance;
+	HAS GtkComboBox $!parent_instance;
 	has gpointer    $!priv           ;
 }
 
-class GimpThumbnail is repr<CStruct> is export {
-	has GObject        $!parent_instance      ;
+class GimpThumbnail is repr<CStruct> does GLib::Roles::Pointers is export {
+	HAS GObject        $!parent_instance      ;
 	has gpointer       $!priv                 ;
-	has GimpThumbState $!image_state          ;
+	has GimpThumbState $.image_state           is rw;
 	has Str            $!image_uri            ;
 	has Str            $!image_filename       ;
 	has gint64         $.image_filesize        is rw;
@@ -771,10 +773,34 @@ class GimpThumbnail is repr<CStruct> is export {
 	has gint64         $.thumb_filesize        is rw;
 	has gint64         $.thumb_mtime           is rw;
 	has Str            $!image_mimetype       ;
+
+	method debug ($n?) {
+		qq:to/DEBUG/
+			{ self.^name } -->
+			  parent_instance       => { $!parent_instance       // '»NIL«'  }
+			  priv                  => { $!priv                  // '»NIL«'  }
+			  image_state           => { $.image_state           // '»NIL«'  }
+			  image_uri             => { $!image_uri             // '»NIL«'  }
+			  image_filename        => { $!image_filename        // '»NIL«'  }
+			  image_filesize        => { $.image_filesize        // '»NIL«'  }
+			  image_mtime           => { $.image_mtime           // '»NIL«'  }
+			  image_not_found_errno => { $.image_not_found_errno // '»NIL«'  }
+			  image_width           => { $.image_width           // '»NIL«'  }
+			  image_height          => { $.image_height          // '»NIL«'  }
+			  image_type            => { $!image_type            // '»NIL«'  }
+			  image_num_layers      => { $.image_num_layers      // '»NIL«'  }
+			  thumb_state           => { $!thumb_state           // '»NIL«'  }
+			  thumb_size            => { $!thumb_size            // '»NIL«'  }
+			  thumb_filename        => { $!thumb_filename        // '»NIL«'  }
+			  thumb_filesize        => { $.thumb_filesize        // '»NIL«'  }
+			  thumb_mtime           => { $.thumb_mtime           // '»NIL«'  }
+			  image_mimetype        => { $!image_mimetype        // '»NIL«'  }
+			DEBUG
+	}
 }
 
 class GimpThumbnailProcedure is repr<CStruct> is export {
-	has GimpProcedure $!parent_instance;
+	HAS GimpProcedure $!parent_instance;
 	has gpointer      $!priv           ;
 }
 
@@ -783,7 +809,7 @@ class GimpThumbnailProcedure is repr<CStruct> is export {
 # }
 
 class GimpTileBackendPlugin is repr<CStruct> is export {
-	has GeglTileBackend $!parent_instance;
+	HAS GeglTileBackend $!parent_instance;
 	has gpointer        $!priv           ;
 }
 
@@ -792,12 +818,12 @@ class GimpTileBackendPlugin is repr<CStruct> is export {
 # }
 
 class GimpUnitComboBox is repr<CStruct> is export {
-	has GtkComboBox $!parent_instance;
+	HAS GtkComboBox $!parent_instance;
 	has gpointer    $!priv           ;
 }
 
 class GimpUnitStore is repr<CStruct> is export {
-	has GObject  $!parent_instance;
+	HAS GObject  $!parent_instance;
 	has gpointer $!priv           ;
 }
 
@@ -807,11 +833,11 @@ class GimpWireMessage is repr<CStruct> is export {
 }
 
 class GimpZoomModel is repr<CStruct> is export {
-	has GObject  $!parent_instance;
+	HAS GObject  $!parent_instance;
 	has gpointer $!priv           ;
 }
 
 class GimpZoomPreview is repr<CStruct> is export {
-	has GimpScrolledPreview $!parent_instance;
+	HAS GimpScrolledPreview $!parent_instance;
 	has gpointer            $!priv           ;
 }
