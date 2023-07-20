@@ -1479,7 +1479,6 @@ sub gimp_image_undo_thaw (GimpImage $image)
 { * }
 
 
-
 ### /usr/src/gimp/libgimp/gimpimagesamplepoints_pdb.h
 
 sub gimp_image_add_sample_point (
@@ -1520,8 +1519,21 @@ sub gimp_image_get_sample_point_position (
   is      export
 { * }
 
+### Manual addition
+
 sub gimp_image_get_type
   returns GType
+  is      native(gimp)
+  is      export
+{ * }
+
+### /usr/src/gimp/libgimp/gimpfile_pdb.h
+
+sub gimp_file_save_thumbnail (
+  GimpImage $image,
+  GFile     $file
+)
+  returns uint32
   is      native(gimp)
   is      export
 { * }
