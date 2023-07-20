@@ -1,266 +1,376 @@
+use v6.c;
+
+use NativeCall;
+
+use GLib::Raw::Traits;
+use GIMP::Raw::Types;
+use GIMP::Raw::Image;
+
+use GLib::GList;
+
+use GLib::Roles::Implementor;
+use GLib::Roles::Object;
+
+our subset GimpImageAncestry is export of Mu
+  where GimpImage | GObject;
+
+class GIMP::Image {
+  also does GLib::Roles::Object;
+
+  has GimpImage $!g-i is implementor;
 
   class Convert {
+    has $!this is built;
 
     method grayscale {
-      gimp_image_convert_grayscale($!g-i);
+      gimp_image_convert_grayscale($!this);
     }
 
-    method indexed (
-      GimpImage              $image,
-      GimpConvertDitherType  $dither_type,
-      GimpConvertPaletteType $palette_type,
-      gint                   $num_cols,
-      gboolean               $alpha_dither,
-      gboolean               $remove_unused,
-      Str                    $palette
+    # cw: Assumptions made:
+    #     - Dither Type: Floyd-Steindberg is the defacto standard in dithering,
+    #                    however reduced bleeding should make for a better image.
+    multi method indexed (
+                     @palette,
+      Int()         :diter(:dither-type(:$dither_type))      = 2,
+      Int()         :palette(:palette-type(:$palette_type))  = 0,
+      Int()         :colors(:num-cols(:$num_cols))           = @palette.elems,
+      Int()         :alpha(:alpha-dither(:$alpha_dither))    = False,
+      Int()         :remove(:remove-unused(:$remove_unused)) = True,
     ) {
-      gimp_image_convert_indexed($!g-i, $dither_type, $palette_type, $num_cols, $alpha_dither, $remove_unused, $palette);
+      samewith(
+        $dither_type,
+        $palette_type,
+        $num_cols,
+        $alpha_dither,
+        $remove_unused,
+        ArrayToCArray(uint8, @palette)
+      );
+    }
+    multi method indexed (
+      Int()         $dither_type,
+      Int()         $palette_type,
+      Int()         $num_cols,
+      Int()         $alpha_dither,
+      Int()         $remove_unused,
+      CArray[uint8] $palette
+    ) {
+      my GimpConvertDitherType  $d = $dither_type;
+      my GimpConvertPaletteType $p = $palette_type;
+      my gint                   $n = $num_cols;
+
+      my gboolean ($a, $r) = ($alpha_dither, $remove_unused).map( *.so.Int );
+
+      if $palette_type = GIMP_CONVERT_PALETTE_GENERATE.Int {
+        X::GLib::InvalidArgument.throw(
+          message => "Number of colors must be specified when using the  {
+                       '' }GIMP_CONVERT_PALETTE_GENERATE type"
+        ).throw unless $num_cols;
+      }
+
+      if $palette_type == GIMP_CONVERT_PALETTE_CUSTOM.Int {
+        X::GLib::InvalidArgument.throw(
+          message => "The name of the palette to use must be given when {
+                       '' }using the GIMP_CONVERT_PALETTE_CUSTOM type"
+        ).throw unless $palette;
+      }
+
+      gimp_image_convert_indexed($!this, $d, $p, $n, $a, $r, $palette);
     }
 
-    method precision (
-      GimpImage     $image,
-      GimpPrecision $precision
-    ) {
-      gimp_image_convert_precision($!g-i, $precision);
+    method precision (Int() $precision) {
+      my GimpPrecision $p = $precision;
+
+      gimp_image_convert_precision($!this, $precision);
     }
 
     method rgb {
-      gimp_image_convert_rgb($!g-i);
+      gimp_image_convert_rgb($!this);
     }
 
-    method set_dither_matrix (
-      gint   $height,
-      GBytes $matrix
-    ) {
-      gimp_image_convert_set_dither_matrix($!g-i, $height, $matrix);
+    proto method set_dither_matrix (|)
+    { * }
+
+    multi method set_dither_matrix (Int() $width, Int() $height, @matrix) {
+      samewith( $width, $height, GLib::Bytes.new(@matrix) );
+    }
+    multi method set_dither_matrix (
+      Int()    $width,
+      Int()    $height,
+      GBytes() $matrix
+    )
+      is static
+    {
+      gimp_image_convert_set_dither_matrix($!this, $height, $matrix);
     }
 
   }
 
   class Grid {
+    has $!this is built;
 
-    method get_background_color (GimpRGB   $bgcolor) {
-      gimp_image_grid_get_background_color($!g-i, $bgcolor);
+    proto method get_background_color (|)
+    { * }
+
+    multi method get_background_color ( :$raw = False ) {
+      samewith( GimpRGB.new, :$raw );
+    }
+    multi method get_background_color (GimpRGB() $bgcolor, :$raw = False) {
+      propReturnObject(
+        gimp_image_grid_get_background_color($!this, $bgcolor),
+        $raw,
+        |GIMP::RGB.getTypePair
+      );
     }
 
-    method get_foreground_color (GimpRGB   $fgcolor) {
-      gimp_image_grid_get_foreground_color($!g-i, $fgcolor);
+    proto method get_foreground_color (|)
+    { * }
+
+    multi method get_foreground_color ( :$raw = False ) {
+      samewith( GimpRGB.new, :$raw );
+    }
+    multi method get_foreground_color (GimpRGB() $fgcolor, :$raw = False) {
+      propReturnObject(
+        gimp_image_grid_get_foreground_color($!this, $fgcolor),
+        $raw,
+        |GIMP::RGB.getTypePair
+      );
     }
 
-    method get_offset (
-      gdouble   $xoffset is rw,
-      gdouble   $yoffset is rw
-    ) {
-      gimp_image_grid_get_offset($!g-i, $xoffset, $yoffset);
+    proto method get_offset (|)
+    { * }
+
+    multi method get_offset {
+      samewith($, $);
+    }
+    multi method get_offset ($xoffset is rw, $yoffset is rw) {
+      my gdouble ($x, $y) = 0e0 xx 2;
+
+      gimp_image_grid_get_offset($!this, $x, $y);
+      ($xoffset, $yoffset) = ($x, $y);
     }
 
-    method get_spacing (
-      gdouble   $xspacing is rw,
-      gdouble   $yspacing is rw
-    ) {
-      gimp_image_grid_get_spacing($!g-i, $xspacing, $yspacing);
+    proto method get_spacing (|)
+    { * }
+
+    multi method get_spacing {
+      samewith($, $);
+    }
+    multi method get_spacing ($xspacing is rw, $yspacing is rw) {
+      my gdouble ($x, $y) = 0e0 xx 2;
+
+      gimp_image_grid_get_spacing($!this, $x, $y);
     }
 
-    method get_style {
-      gimp_image_grid_get_style($!g-i);
+    method get_style ( :$enum = True ) {
+      my $s = gimp_image_grid_get_style($!this);
+      return $s unless $enum;
+      GimpGridStyleEnum($s);
     }
 
-    method set_background_color (GimpRGB   $bgcolor) {
-      gimp_image_grid_set_background_color($!g-i, $bgcolor);
+    method set_background_color (GimpRGB() $bgcolor) {
+      gimp_image_grid_set_background_color($!this, $bgcolor);
     }
 
-    method set_foreground_color (GimpRGB   $fgcolor) {
-      gimp_image_grid_set_foreground_color($!g-i, $fgcolor);
+    method set_foreground_color (GimpRGB() $fgcolor) {
+      gimp_image_grid_set_foreground_color($!this, $fgcolor);
     }
 
-    method set_offset (
-      gdouble   $xoffset,
-      gdouble   $yoffset
-    ) {
-      gimp_image_grid_set_offset($!g-i, $xoffset, $yoffset);
+    method set_offset (Num() $xoffset, Num() $yoffset) {
+      my gdouble ($x, $y) = ($xoffset, $yoffset);
+
+      gimp_image_grid_set_offset($!this, $xoffset, $yoffset);
     }
 
-    method set_spacing (
-      gdouble   $xspacing,
-      gdouble   $yspacing
-    ) {
-      gimp_image_grid_set_spacing($!g-i, $xspacing, $yspacing);
+    method set_spacing (Num() $xspacing, Num() $yspacing) {
+      my gdouble ($x, $y) = ($xspacing, $yspacing);
+
+      gimp_image_grid_set_spacing($!this, $xspacing, $yspacing);
     }
 
-    method set_style (GimpGridStyle $style) {
-      gimp_image_grid_set_style($!g-i, $style);
+    method set_style (Int() $style) {
+      my GimpGridStyle $s = $style;
+
+      gimp_image_grid_set_style($!this, $s);
     }
 
   }
 
   class Metadata {
+    has $!this is built;
+
     method load_finish (
-      GimpImage             $image,
-      Str                   $mime_type,
-      GimpMetadata          $metadata,
-      GimpMetadataLoadFlags $flags
+      Str()          $mime_type,
+      GimpMetadata() $metadata,
+      Int()          $flags
     ) {
-      gimp_image_metadata_load_finish($!g-i, $mime_type, $metadata, $flags);
+      my GimpMetadataLoadFlags $f = $flags;
+
+      gimp_image_metadata_load_finish($!this, $mime_type, $metadata, $f);
     }
 
     method load_prepare (
-      GimpImage               $image,
-      Str                     $mime_type,
-      GFile                   $file,
-      CArray[Pointer[GError]] $error
+      Str()                   $mime_type,
+      GFile()                 $file,
+      CArray[Pointer[GError]] $error = gerror
     ) {
-      gimp_image_metadata_load_prepare($!g-i, $mime_type, $file, $error);
+      clear_error;
+      my $rv = so gimp_image_metadata_load_prepare(
+        $!this,
+        $mime_type,
+        $file,
+        $error
+      );
+      set_error($error);
+      $rv;
     }
 
-    method load_thumbnail (CArray[Pointer[GError]] $error) {
-      gimp_image_metadata_load_thumbnail($!g-i, $error);
+    method load_thumbnail (
+      CArray[Pointer[GError]]  $error = gerror,
+                              :$raw   = False
+    ) {
+      clear_error;
+      my $t = propReturnObject(
+        gimp_image_metadata_load_thumbnail($!this, $error),
+        $raw,
+        |GIMP::Thumbnail.getTypePair
+      );
+      set_error($error);
+      $t;
     }
 
     method save_filter (
-      GimpImage               $image,
-      Str                     $mime_type,
-      GimpMetadata            $metadata,
-      GimpMetadataSaveFlags   $flags,
-      GFile                   $file,
-      CArray[Pointer[GError]] $error
+      Str()                   $mime_type,
+      GimpMetadata()          $metadata,
+      Int()                   $flags,
+      GFile()                 $file,
+      CArray[Pointer[GError]] $error       = gerror
     ) {
-      gimp_image_metadata_save_filter($!g-i, $mime_type, $metadata, $flags, $file, $error);
+      my GimpMetadataSaveFlags $f = $flags;
+
+      clear_error;
+      my $rv = so gimp_image_metadata_save_filter(
+        $!this,
+        $mime_type,
+        $metadata,
+        $f,
+        $file,
+        $error
+      );
+      set_error($error);
+      $rv;
     }
 
     method save_finish (
-      GimpImage               $image,
-      Str                     $mime_type,
-      GimpMetadata            $metadata,
-      GimpMetadataSaveFlags   $flags,
-      GFile                   $file,
-      CArray[Pointer[GError]] $error
+      Str()                   $mime_type,
+      GimpMetadata()          $metadata,
+      Int()                   $flags,
+      GFile()                 $file,
+      CArray[Pointer[GError]] $error       = gerror
     ) {
-      gimp_image_metadata_save_finish($!g-i, $mime_type, $metadata, $flags, $file, $error);
+      my GimpMetadataSaveFlags $f = $flags;
+
+      clear_error;
+      my $rv = so gimp_image_metadata_save_finish(
+        $!this,
+        $mime_type,
+        $metadata,
+        $f,
+        $file,
+        $error
+      );
+      set_error($error);
+      $rv;
     }
 
-    method save_prepare (
-      GimpImage             $image,
-      Str                   $mime_type,
-      GimpMetadataSaveFlags $suggested_flags
-    ) {
-      gimp_image_metadata_save_prepare($!g-i, $mime_type, $suggested_flags);
+    method save_prepare (Str() $mime_type, Int() $suggested_flags) {
+      my GimpMetadataSaveFlags $f = $suggested_flags;
+
+      gimp_image_metadata_save_prepare($!this, $mime_type, $f);
     }
   }
 
-  method get_by_id {
-    gimp_image_get_by_id($!g-i);
+  has Convert  $.convert;
+  has Grid     $.grid;
+  has Metadata $.metadata;
+
+  submethod BUILD ( :$gimp-image ) {
+    self.setGimpImage($gimp-image) if $gimp-image
   }
 
-  method get_colormap (
-    GimpImage $image,
-    gint      $colormap_len is rw,
-    gint      $num_colors is rw
+  method setGimpImage (GimpImageAncestry $_) {
+    my $to-parent;
+
+    $!g-i = do {
+      when GimpImage {
+        $to-parent = cast(GObject, $_);
+        $_;
+      }
+
+      default {
+        $to-parent = $_;
+        cast(GimpImage, $_);
+      }
+    }
+    self!setObject($to-parent);
+
+    $.convert  .= new( this => $!g-i );
+    $.grid     .= new( this => $!g-i );
+    $.metadata .= new( this => $!g-i );
+  }
+
+  method GIMP::Raw::Definitions::GimpImage
+  { $!g-i }
+
+  multi method new ($gimp-image where * ~~ GimpImageAncestry , :$ref = True) {
+    return unless $gimp-image;
+
+    my $o = self.bless( :$gimp-image );
+    $o.ref if $ref;
+    $o;
+  }
+  multi method new (Int() $width, Int() $height, Int() $type) {
+    my gint              ($w, $h) = ($width, $height);
+    my GimpImageBaseType  $t      =  $type;
+
+    my $gimp-image = gimp_image_new($w, $h, $t);
+
+    $gimp-image ?? self.bless( :$gimp-image ) !! Nil;
+  }
+
+  method new_with_precision (
+    Int() $width,
+    Int() $height,
+    Int() $type,
+    Int() $precision
   ) {
-    gimp_image_get_colormap($!g-i, $colormap_len, $num_colors);
+    my gint              ($w, $h) = ($width, $height);
+    my GimpImageBaseType  $t      =  $type;
+    my GimpPrecision      $p      =  $precision;
+
+    my $gimp-image = gimp_image_new_with_precision($w, $h, $t, $p);
+
+    $gimp-image ?? self.bless( :$gimp-image ) !! Nil;
   }
 
-  method get_id {
-    gimp_image_get_id($!g-i);
+  method add_hguide (Int() $yposition) {
+    my gint $y = $yposition;
+
+    gimp_image_add_hguide($!g-i, $y);
   }
 
-  method get_metadata {
-    gimp_image_get_metadata($!g-i);
+  method add_sample_point (Int() $position_x, Int() $position_y) {
+    my gint ($x, $y) = ($position_x, $position_y);
+
+    gimp_image_add_sample_point($!g-i, $x, $y);
   }
 
-  method get_thumbnail (
-    GimpImage              $image,
-    gint                   $width,
-    gint                   $height,
-    GimpPixbufTransparency $alpha
-  ) {
-    gimp_image_get_thumbnail($!g-i, $width, $height, $alpha);
+  method add_vguide (Int() $xposition) {
+    my gint $x = $xposition;
+
+    gimp_image_add_vguide($!g-i, $x);
   }
 
-  method get_thumbnail_data (
-    GimpImage $image,
-    gint      $width is rw,
-    gint      $height is rw,
-    gint      $bpp is rw
-  ) {
-    gimp_image_get_thumbnail_data($!g-i, $width, $height, $bpp);
-  }
-
-  method gimp_list_images {
-    gimp_list_images($!g-i);
-  }
-
-  method is_valid {
-    gimp_image_is_valid($!g-i);
-  }
-
-  method list_channels {
-    gimp_image_list_channels($!g-i);
-  }
-
-  method list_layers {
-    gimp_image_list_layers($!g-i);
-  }
-
-  method list_selected_channels {
-    gimp_image_list_selected_channels($!g-i);
-  }
-
-  method list_selected_drawables {
-    gimp_image_list_selected_drawables($!g-i);
-  }
-
-  method list_selected_layers {
-    gimp_image_list_selected_layers($!g-i);
-  }
-
-  method list_selected_vectors {
-    gimp_image_list_selected_vectors($!g-i);
-  }
-
-  method list_vectors {
-    gimp_image_list_vectors($!g-i);
-  }
-
-  method set_colormap (
-    GimpImage $image,
-    Str       $colormap,
-    gint      $num_colors
-  ) {
-    gimp_image_set_colormap($!g-i, $colormap, $num_colors);
-  }
-
-  method set_metadata (
-    GimpImage    $image,
-    GimpMetadata $metadata
-  ) {
-    gimp_image_set_metadata($!g-i, $metadata);
-  }
-
-  method take_selected_channels (
-    GimpImage $image,
-    GList     $channels
-  ) {
-    gimp_image_take_selected_channels($!g-i, $channels);
-  }
-
-  method take_selected_layers (
-    GimpImage $image,
-    GList     $layers
-  ) {
-    gimp_image_take_selected_layers($!g-i, $layers);
-  }
-
-  method take_selected_vectors (
-    GimpImage $image,
-    GList     $vectors
-  ) {
-    gimp_image_take_selected_vectors($!g-i, $vectors);
-  }
-
-  method attach_parasite (
-    GimpImage    $image,
-    GimpParasite $parasite
-  ) {
+  method attach_parasite (GimpParasite() $parasite) {
     gimp_image_attach_parasite($!g-i, $parasite);
   }
 
@@ -268,23 +378,87 @@
     gimp_image_clean_all($!g-i);
   }
 
+  method convert_color_profile (
+    GimpColorProfile() $profile,
+    Int()              $intent,
+    Int()              $bpc
+  ) {
+    my GimpColorRenderingIntent $i = $intent;
+    my gboolean                 $b = $bpc.so.Int;
+
+    gimp_image_convert_color_profile($!g-i, $profile, $i, $b);
+  }
+
+  method convert_color_profile_from_file (
+    GFile() $file,
+    Int()   $intent,
+    Int()   $bpc
+  ) {
+    my GimpColorRenderingIntent $i = $intent;
+    my gboolean                 $b = $bpc.so.Int;
+
+    gimp_image_convert_color_profile_from_file($!g-i, $file, $i, $b);
+  }
+
+  method crop (
+    Int() $new_width,
+    Int() $new_height,
+    Int() $offx,
+    Int() $offy
+  ) {
+    my gint ($w, $h, $x, $y) = ($new_width, $new_height, $offx, $offy);
+
+    gimp_image_crop($!g-i, $w, $h, $x, $y);
+  }
+
   method delete {
     gimp_image_delete($!g-i);
   }
 
-  method detach_parasite (
-    GimpImage $image,
-    Str       $name
-  ) {
+  method delete_guide (Int() $guide) {
+    my guint $g = $guide;
+
+    gimp_image_delete_guide($!g-i, $g);
+  }
+
+  method delete_sample_point (Int() $sample_point) {
+    my guint $s = $sample_point;
+
+    gimp_image_delete_sample_point($!g-i, $s);
+  }
+
+  method detach_parasite (Str() $name) {
     gimp_image_detach_parasite($!g-i, $name);
   }
 
-  method duplicate {
-    gimp_image_duplicate($!g-i);
+  method duplicate ( :$raw = False ) {
+    propReturnObject(
+      gimp_image_duplicate($!g-i),
+      $raw,
+      |self.getTypePair
+    );
+  }
+
+  method find_next_guide (Int() $guide) {
+    my guint $g = $guide;
+
+    gimp_image_find_next_guide($!g-i, $g);
+  }
+
+  method find_next_sample_point (Int() $sample_point) {
+    my guint $s = $sample_point;
+
+    gimp_image_find_next_sample_point($!g-i, $sample_point);
   }
 
   method flatten {
     gimp_image_flatten($!g-i);
+  }
+
+  method flip (Int() $flip_type) {
+    my GimpOrientationType $f = $flip_type;
+
+    gimp_image_flip($!g-i, $f);
   }
 
   method floating_sel_attached_to {
@@ -307,426 +481,1076 @@
     gimp_image_get_base_type($!g-i);
   }
 
-  method get_channel_by_name (
-    GimpImage $image,
-    Str       $name
+  method get_by_id {
+    gimp_image_get_by_id($!g-i);
+  }
+
+  method get_channel_by_name (Str() $name, :$raw = False) {
+    propReturnObject(
+      gimp_image_get_channel_by_name($!g-i, $name),
+      $raw,
+      |GIMP::Channel.getTypePair
+    );
+  }
+
+  method get_channel_by_tattoo (Int() $tattoo, :$raw = False) {
+    my guint $t = $tattoo;
+
+    propReturnObject(
+      gimp_image_get_channel_by_tattoo($!g-i, $t),
+      $raw,
+      |GIMP::Channel.getTypePair
+    )
+  }
+
+  proto method get_channels (|)
+  { * }
+
+  multi method get_channels ( :$raw = False ,:gslist(:$glist) = False) {
+    samewith($, :$raw, :$glist);
+  }
+  multi method get_channels (
+     $num_channels is rw,
+    :$raw                 = False,
+    :gslist(:$glist)      = False
   ) {
-    gimp_image_get_channel_by_name($!g-i, $name);
+    my gint $n = 0;
+
+    my $l = gimp_image_get_channels($!g-i, $n);
+    $num_channels = $n;
+    returnGList($l, $raw, $glist, |GIMP::Channel.getTypePair)
   }
 
-  method get_channel_by_tattoo (
-    GimpImage $image,
-    guint     $tattoo
+  method get_color_profile {
+    gimp_image_get_color_profile($!g-i);
+  }
+
+  # cw: Defaults to FALSE because specifying :$array will provide
+  #     a COPY, not live data.
+  proto method get_colormap (|)
+  { * }
+
+  multi method get_colormap ( :$array = False ) {
+    my ($c, $n);
+    my  $a       = samewith($c, $n, :$array);
+
+    ($a, $c, $n);
+  }
+  multi method get_colormap (
+     $colormap_len is rw,
+     $num_colors   is rw,
+    :$array               = False
   ) {
-    gimp_image_get_channel_by_tattoo($!g-i, $tattoo);
+    my gint ($c, $n) = 0 xx 2;
+
+    my $a = gimp_image_get_colormap($!g-i, $c, $n);
+    ($colormap_len, $num_colors) = ($c, $n);
+    $a = CArrayToArray($a) if $array;
+    $a;
   }
 
-  method get_channels (
-    GimpImage $image,
-    gint      $num_channels is rw
-  ) {
-    gimp_image_get_channels($!g-i, $num_channels);
+  method get_component_active (Int() $component) {
+    my GimpChannelType $c = $component;
+
+    so gimp_image_get_component_active($!g-i, $c);
   }
 
-  method get_component_active (
-    GimpImage       $image,
-    GimpChannelType $component
-  ) {
-    gimp_image_get_component_active($!g-i, $component);
+  method get_component_visible (Int() $component) {
+    my GimpChannelType $c = $component;
+
+    so gimp_image_get_component_visible($!g-i, $c);
   }
 
-  method get_component_visible (
-    GimpImage       $image,
-    GimpChannelType $component
-  ) {
-    gimp_image_get_component_visible($!g-i, $component);
+  method get_default_new_layer_mode ( :$enum = True ) {
+    my $m = gimp_image_get_default_new_layer_mode($!g-i);
+    return $m unless $enum;
+    GimpLayerModeEnum($m);
   }
 
-  method get_default_new_layer_mode {
-    gimp_image_get_default_new_layer_mode($!g-i);
+  method get_effective_color_profile ( :$raw = False ) {
+    propReturnObject(
+      gimp_image_get_effective_color_profile($!g-i),
+      $raw,
+      |GIMP::Color::Profile.getTypePair
+    );
   }
 
-  method get_exported_file {
-    gimp_image_get_exported_file($!g-i);
+  method get_exported_file ( :$raw = False ) {
+    propReturnObject(
+      gimp_image_get_exported_file($!g-i),
+      $raw,
+      |GIO::File.getTypePair
+    );
   }
 
-  method get_file {
-    gimp_image_get_file($!g-i);
+  method get_file ( :$raw = False ) {
+    propReturnObject(
+      gimp_image_get_file($!g-i),
+      $raw,
+      |GIO::File.getTypePair
+    )
   }
 
-  method get_floating_sel {
-    gimp_image_get_floating_sel($!g-i);
+  method get_floating_sel ( :$raw = False ) {
+    propReturnObject(
+      gimp_image_get_floating_sel($!g-i),
+      $raw,
+      |GIMP::Layer.getTypePair
+    );
+  }
+
+  method get_guide_orientation (Int() $guide, :$enum = True) {
+    my guint $g = $guide;
+
+    my $o = gimp_image_get_guide_orientation($!g-i, $g);
+    return $o unless $enum;
+    GimpOrientationTypeEnum($o);
+  }
+
+  method get_guide_position (Int() $guide, :$enum = True) {
+    my guint $g = $guide;
+
+    my $o = gimp_image_get_guide_position($!g-i, $guide);
+    return $o unless $enum;
+    GimpOrientationTypeEnum($o);
   }
 
   method get_height {
     gimp_image_get_height($!g-i);
   }
 
-  method get_imported_file {
-    gimp_image_get_imported_file($!g-i);
+  method get_id {
+    gimp_image_get_id($!g-i);
   }
 
-  method get_item_position (
-    GimpImage $image,
-    GimpItem  $item
-  ) {
+  method get_imported_file ( :$raw = False ) {
+    propReturnObject(
+      gimp_image_get_imported_file($!g-i),
+      $raw,
+      |GIO::File.getTypePair
+    );
+  }
+
+  method get_item_position (GimpItem()  $item) {
     gimp_image_get_item_position($!g-i, $item);
   }
 
-  method get_layer_by_name (
-    GimpImage $image,
-    Str       $name
-  ) {
-    gimp_image_get_layer_by_name($!g-i, $name);
+  method get_layer_by_name (Str() $name, :$raw = False) {
+    propReturnObject(
+      gimp_image_get_layer_by_name($!g-i, $name),
+      $raw,
+      |GIMP::Layer.getTypePair
+    );
   }
 
-  method get_layer_by_tattoo (
-    GimpImage $image,
-    guint     $tattoo
-  ) {
-    gimp_image_get_layer_by_tattoo($!g-i, $tattoo);
+  method get_layer_by_tattoo (Int() $tattoo, :$raw = False) {
+    my guint $t = $tattoo;
+
+    propReturnObject(
+      gimp_image_get_layer_by_tattoo($!g-i, $t),
+      $raw,
+      |GIMP::Layer.getTypePair
+    );
   }
 
-  method get_layers (
-    GimpImage $image,
-    gint      $num_layers is rw
+  proto method get_layers (|)
+  { * }
+
+  multi method get_layers (:$raw = False, :gslist(:$glist) = False ) {
+    samewith($, :$raw, :$glist);
+  }
+  multi method get_layers (
+     $num_layers     is rw,
+    :$raw                    = False,
+    :gslist(:$glist)         = False
   ) {
-    gimp_image_get_layers($!g-i, $num_layers);
+    my gint $n = 0;
+
+    my $ll = returnGList(
+      gimp_image_get_layers($!g-i, $n),
+      $raw,
+      $glist,
+      |GIMP::Layer.getTypePair
+    );
+    $num_layers = $n;
+    $ll;
+  }
+
+  method get_metadata ( :$raw = False ) {
+    propReturnObject(
+      gimp_image_get_metadata($!g-i),
+      $raw,
+      |GIMP::Metadata.getTypePair
+    );
   }
 
   method get_name {
     gimp_image_get_name($!g-i);
   }
 
-  method get_parasite (
-    GimpImage $image,
-    Str       $name
+  method get_parasite (Str() $name, :$raw = False) {
+    propReturnObject(
+      gimp_image_get_parasite($!g-i, $name),
+      $raw,
+      |GIMP::Parasite.getTypePair
+    );
+  }
+
+  method get_parasite_list ( :$raw = False, :gslist(:$glist) ) {
+    returnGList(
+      gimp_image_get_parasite_list($!g-i),
+      $raw,
+      $glist,
+      |GIMP::Parasite.getTypePair
+    );
+  }
+
+  method get_precision ( :$enum = True ) {
+    my $p = gimp_image_get_precision($!g-i);
+    return $p unless $enum;
+    GimpPrecisionEnum($p);
+  }
+
+  proto method get_resolution (|)
+  { * }
+
+  multi method get_resolution {
+    samewith($, $);
+  }
+  multi method get_resolution (
+    $xresolution is rw,
+    $yresolution is rw
   ) {
-    gimp_image_get_parasite($!g-i, $name);
+    my gdouble ($x, $y) = 0e0 xx 2;
+    gimp_image_get_resolution($!g-i, $x, $y);
+    ($xresolution, $yresolution) = ($x, $y);
   }
 
-  method get_parasite_list {
-    gimp_image_get_parasite_list($!g-i);
-  }
+  proto method get_sample_point_position (|)
+  { * }
 
-  method get_precision {
-    gimp_image_get_precision($!g-i);
+  multi method get_sample_point_position (Int() $sample_point) {
+    samewith($sample_point, $);
   }
-
-  method get_resolution (
-    GimpImage $image,
-    gdouble   $xresolution is rw,
-    gdouble   $yresolution is rw
+  multi method get_sample_point_position (
+    Int() $sample_point,
+          $position_y    is rw
   ) {
-    gimp_image_get_resolution($!g-i, $xresolution, $yresolution);
+    my guint $s = $sample_point;
+    my gint  $y = 0;
+
+    gimp_image_get_sample_point_position($!g-i, $s, $y);
+    $position_y = $y;
   }
 
-  method get_selected_channels (
-    GimpImage $image,
-    gint      $num_channels is rw
+  proto method get_selected_channels (|)
+  { * }
+
+  multi method get_selected_channels (
+    :$raw            = False,
+    :gslist(:$glist) = False
   ) {
-    gimp_image_get_selected_channels($!g-i, $num_channels);
+    samewith($, :$raw, :$glist);
   }
-
-  method get_selected_drawables (
-    GimpImage $image,
-    gint      $num_drawables is rw
+  multi method get_selected_channels (
+     $num_channels   is rw,
+    :$raw                   = False,
+    :gslist(:$glist)        = False
   ) {
-    gimp_image_get_selected_drawables($!g-i, $num_drawables);
+    my gint $n  = 0;
+
+    my $cl = returnGList(
+      gimp_image_get_selected_channels($!g-i, $n),
+      $raw,
+      $glist,
+      |GIMP::Channel.getTypePair
+    );
+    $num_channels = $n;
+    $cl;
   }
 
-  method get_selected_layers (
-    GimpImage $image,
-    gint      $num_layers is rw
+  proto method get_selected_drawables (|)
+  { * }
+
+  multi method get_selected_drawables (
+    :$raw            = False,
+    :gslist(:$glist) = False
   ) {
-    gimp_image_get_selected_layers($!g-i, $num_layers);
+    samewith($);
   }
-
-  method get_selected_vectors (
-    GimpImage $image,
-    gint      $num_vectors is rw
+  multi method get_selected_drawables (
+     $num_drawables  is rw,
+    :$raw                   = False,
+    :gslist(:$glist)        = False
   ) {
-    gimp_image_get_selected_vectors($!g-i, $num_vectors);
+    my gint $n  = 0;
+
+    my $cl = returnGList(
+      gimp_image_get_selected_drawables($!g-i, $n),
+      $raw,
+      $glist,
+      |GIMP::Drawable.getTypePair
+    );
+    $num_drawables = $n;
+    $cl;
   }
 
-  method get_selection {
-    gimp_image_get_selection($!g-i);
+  proto method get_selected_layers (|)
+  { * }
+
+  multi method get_selected_layers (
+    :$raw            = False,
+    :gslist(:$glist) = False
+  ) {
+    samewith($);
+  }
+  multi method get_selected_layers (
+     $num_layers  is rw,
+    :$raw                   = False,
+    :gslist(:$glist)        = False
+  ) {
+    my gint $n  = 0;
+
+    my $cl = returnGList(
+      gimp_image_get_selected_layers($!g-i, $n),
+      $raw,
+      $glist,
+      |GIMP::Layers.getTypePair
+    );
+    $num_layers = $n;
+    $cl;
+  }
+
+  proto method get_selected_vectors (|)
+  { * }
+
+  multi method get_selected_vectors (
+    :$raw            = False,
+    :gslist(:$glist) = False
+  ) {
+    samewith($);
+  }
+  multi method get_selected_vectors (
+     $num_vectors   is rw,
+    :$raw                   = False,
+    :gslist(:$glist)        = False
+  ) {
+    my gint $n  = 0;
+
+    my $cl = returnGList(
+      gimp_image_get_selected_vectors($!g-i, $n),
+      $raw,
+      $glist,
+      |GIMP::Vector.getTypePair
+    );
+    $num_vectors = $n;
+    $cl;
+  }
+
+  method get_selection ( :$raw = False ) {
+    propReturnObject(
+      gimp_image_get_selection($!g-i),
+      $raw,
+      |GIMP::Selection.getTypePair
+    );
+  }
+
+  method get_simulation_bpc {
+    so gimp_image_get_simulation_bpc($!g-i);
+  }
+
+  method get_simulation_intent ( :$enum = True ) {
+    my $i = gimp_image_get_simulation_intent($!g-i);
+    return $i unless $enum;
+    GimpColorRenderingIntentEnum($i);
+  }
+
+  method get_simulation_profile ( :$raw = False ) {
+    propReturnObject(
+      gimp_image_get_simulation_profile($!g-i),
+      $raw,
+      |GIMP::Color::Profile.getTypePair
+    );
   }
 
   method get_tattoo_state {
     gimp_image_get_tattoo_state($!g-i);
   }
 
-  method get_unit {
-    gimp_image_get_unit($!g-i);
+  method get_thumbnail (
+    Int()  $width,
+    Int()  $height,
+    Int()  $alpha,
+          :$raw      = False
+  ) {
+    my gint                   ($w, $h) = ($width, $height);
+    my GimpPixbufTransparency  $a      =  $alpha;
+
+    propReturnObject(
+      gimp_image_get_thumbnail($!g-i, $w, $h, $a),
+      $raw,
+      |GIMP::Thumbnail.getTypePair
+    );
   }
 
-  method get_vectors (
-    GimpImage $image,
-    gint      $num_vectors is rw
-  ) {
-    gimp_image_get_vectors($!g-i, $num_vectors);
+  method get_type {
+    state ($n, $t);
+
+    unstable_get_type( self.^name, &gimp_image_get_type, $n, $t );
   }
 
-  method get_vectors_by_name (
-    GimpImage $image,
-    Str       $name
+  proto method get_thumbnail_data (|)
+  { * }
+
+  multi method get_thumbnail_data ( :$buf = False ) {
+    samewith($, $, $, :$buf)
+  }
+  multi method get_thumbnail_data (
+     $width  is rw,
+     $height is rw,
+     $bpp    is rw,
+    :$buf           = False
   ) {
-    gimp_image_get_vectors_by_name($!g-i, $name);
+    my gint ($w, $h, $b) = 0 xx 3;
+
+    my $d = gimp_image_get_thumbnail_data($!g-i, $w, $h, $b);
+    ($width, $height, $bpp) = ($w, $h, $b);
+    return $d unless $buf;
+    Buf.new($d)
   }
 
-  method get_vectors_by_tattoo (
-    GimpImage $image,
-    guint     $tattoo
+  method get_unit ( :$raw = False ) {
+    propReturnObject(
+      gimp_image_get_unit($!g-i),
+      $raw,
+      |GIMP::Unit.getTypePair
+    );
+  }
+
+  proto method get_vectors (|)
+  { * }
+
+  multi method get_vectors (
+    :$raw                   = False,
+    :gslist(:$glist)        = False
   ) {
-    gimp_image_get_vectors_by_tattoo($!g-i, $tattoo);
+    samewith($, :$raw, :$glist);
+  }
+  multi method get_vectors (
+     $num_vectors    is rw,
+    :$raw                   = False,
+  ) {
+    my gint $n = 0;
+
+    my $va = gimp_image_get_vectors($!g-i, $n),
+    $num_vectors = $n;
+    return $va if $raw;
+    CArrayToArray($va).map({ GIMP::Vector.new($_) });
+  }
+
+  method get_vectors_by_name (Str() $name, :$raw = False) {
+    propReturnObject(
+      gimp_image_get_vectors_by_name($!g-i, $name),
+      $raw,
+      |GIMP::Vector.getTypePair
+    );
+  }
+
+  method get_vectors_by_tattoo (Int() $tattoo, :$raw = False) {
+    my guint $t = $tattoo;
+
+    propReturnObject(
+      gimp_image_get_vectors_by_tattoo($!g-i, $tattoo),
+      $raw,
+      |GIMP::Vector.getTypePair
+    );
   }
 
   method get_width {
     gimp_image_get_width($!g-i);
   }
 
-  method get_xcf_file {
-    gimp_image_get_xcf_file($!g-i);
+  method get_xcf_file ( :$raw = False ) {
+    propReturnObject(
+      gimp_image_get_xcf_file($!g-i),
+      $raw,
+      |GIO::File.getTypePair
+    );
   }
 
-  method gimp_get_images {
-    gimp_get_images($!g-i);
+  method get_images ( :$raw = False ) {
+    my $ia = CArrayToArray( gimp_get_images($!g-i) );
+    return $ia if $raw;
+    CArrayToArray($ia).map({ ::?CLASS.new($_) });
+  }
+
+  method list_images ( :$raw = False, :gslist(:$glist) = False )
+    is static
+  {
+    returnGList(
+      gimp_list_images(),
+      $raw,
+      $glist,
+      |self.getTypePair
+    );
   }
 
   method id_is_valid {
-    gimp_image_id_is_valid($!g-i);
+    so gimp_image_id_is_valid($!g-i);
   }
 
-  method insert_channel (
-    GimpImage   $image,
-    GimpChannel $channel,
-    GimpChannel $parent,
-    gint        $position
+  proto method insert_channel (|)
+  { * }
+
+  multi method insert_channel (
+    GimpChannel()  $channel,
+    Int()          $position,
+    GimpChannel() :$parent    = GimpChannel
   ) {
-    gimp_image_insert_channel($!g-i, $channel, $parent, $position);
+    samewith($channel, $parent, $position);
+  }
+  multi method insert_channel (
+    GimpChannel() $channel,
+    GimpChannel() $parent,
+    Int()         $position,
+  ) {
+    my gint $p = $position;
+
+    gimp_image_insert_channel($!g-i, $channel, $parent, $p);
   }
 
-  method insert_layer (
-    GimpImage $image,
-    GimpLayer $layer,
-    GimpLayer $parent,
-    gint      $position
+  proto method insert_layer (|)
+  { * }
+
+  multi method insert_layer (
+    GimpLayer()  $layer,
+    Int()        $position,
+    GimpLayer() :$parent    = GimpLayer
   ) {
-    gimp_image_insert_layer($!g-i, $layer, $parent, $position);
+    samewith($layer, $parent, $position);
+  }
+  multi method insert_layer (
+    GimpLayer() $layer,
+    GimpLayer() $parent,
+    Int()       $position
+  ) {
+    my gint $p = $position;
+
+    gimp_image_insert_layer($!g-i, $layer, $parent, $p);
   }
 
-  method insert_vectors (
-    GimpImage   $image,
-    GimpVectors $vectors,
-    GimpVectors $parent,
-    gint        $position
+  proto method insert_vectors (|)
+  { * }
+
+  multi method insert_vectors (
+    GimpVectors()  $vectors,
+    Int()          $position,
+    GimpVectors() :$parent    = GimpVectors
   ) {
-    gimp_image_insert_vectors($!g-i, $vectors, $parent, $position);
+    samewith($vectors, $parent, $position);
+  }
+  multi method insert_vectors (
+    GimpVectors() $vectors,
+    GimpVectors() $parent,
+    Int()         $position
+  ) {
+    my gint $p = $position;
+
+    gimp_image_insert_vectors($!g-i, $vectors, $parent, $p);
   }
 
   method is_dirty {
-    gimp_image_is_dirty($!g-i);
+    so gimp_image_is_dirty($!g-i);
   }
 
-  method lower_item (
-    GimpImage $image,
-    GimpItem  $item
-  ) {
+  method is_valid {
+    so gimp_image_is_valid($!g-i);
+  }
+
+  method list_channels ( :$raw = False, :$glist = False ) {
+    returnGList(
+      gimp_image_list_channels($!g-i),
+      $raw,
+      $glist,
+      |GIMP::Channel.getTypePair
+    );
+  }
+
+  method list_layers ( :$raw = False, :$glist = False ) {
+    returnGList(
+      gimp_image_list_layers($!g-i),
+      $raw,
+      $glist,
+      |GIMP::Layer.getTypePair
+    );
+  }
+
+  method list_selected_channels ( :$raw = False, :$glist = False ) {
+    returnGList(
+      gimp_image_list_selected_channels($!g-i),
+      $raw,
+      $glist,
+      |GIMP::Channel.getTypePair
+    );
+  }
+
+  method list_selected_drawables ( :$raw = False, :$glist = False ) {
+    returnGList(
+      gimp_image_list_selected_drawables($!g-i),
+      $raw,
+      $glist,
+      |GIMP::Drawable.getTypePair
+    );
+  }
+
+  method list_selected_layers ( :$raw = False, :$glist = False ) {
+    returnGList(
+      gimp_image_list_selected_layers($!g-i),
+      $raw,
+      $glist,
+      |GIMP::Layer.getTypePair
+    );
+  }
+
+  method list_selected_vectors ( :$raw = False, :$glist = False ) {
+    returnGList(
+      gimp_image_list_selected_vectors($!g-i),
+      $raw,
+      $glist
+      |GIMP::Vectors.getTypePair
+    );
+  }
+
+  method list_vectors ( :$raw = False, :$glist = False ) {
+    returnGList(
+      gimp_image_list_vectors($!g-i),
+      $raw,
+      $glist,
+      |GIMP::Vector.getTypePair
+    );
+  }
+
+  method lower_item (GimpItem() $item) {
     gimp_image_lower_item($!g-i, $item);
   }
 
-  method lower_item_to_bottom (
-    GimpImage $image,
-    GimpItem  $item
-  ) {
+  method lower_item_to_bottom (GimpItem() $item) {
     gimp_image_lower_item_to_bottom($!g-i, $item);
   }
 
   method merge_down (
-    GimpImage     $image,
-    GimpLayer     $merge_layer,
-    GimpMergeType $merge_type
+    GimpLayer() $merge_layer,
+    Int()       $merge_type
   ) {
-    gimp_image_merge_down($!g-i, $merge_layer, $merge_type);
+    my GimpMergeType $m = $merge_type;
+
+    gimp_image_merge_down($!g-i, $merge_layer, $m);
   }
 
-  method merge_layer_group (
-    GimpImage $image,
-    GimpLayer $layer_group
-  ) {
+  method merge_layer_group (GimpLayer() $layer_group) {
     gimp_image_merge_layer_group($!g-i, $layer_group);
   }
 
-  method merge_visible_layers (
-    GimpImage     $image,
-    GimpMergeType $merge_type
-  ) {
-    gimp_image_merge_visible_layers($!g-i, $merge_type);
+  method merge_visible_layers (Int() $merge_type) {
+    my GimpMergeType $m = $merge_type;
+
+    gimp_image_merge_visible_layers($!g-i, $m);
   }
 
-  method new (
-    gint              $height,
-    GimpImageBaseType $type
-  ) {
-    gimp_image_new($!g-i, $height, $type);
-  }
+  proto method pick_color (|)
+  { * }
 
-  method new_with_precision (
-    gint              $height,
-    GimpImageBaseType $type,
-    GimpPrecision     $precision
+  multi method pick_color (
+                      @drawables,
+    Num()             $x,
+    Num()             $y,
+    Num()             $average_radius,
+    GimpRGB()         $color,
+    Int()            :merged(:sample-merged(:$sample_merged))
+                       = False,
+    Int()            :avg(:sample-average(:$sample_average))
+                       = False,
+                     :num(:num-drawables(:$num_drawables))
+                       = @drawables.elems
   ) {
-    gimp_image_new_with_precision($!g-i, $width, $height, $type, $precision);
+    samewith(
+      $num_drawables,
+      ArrayToCArray(GimpItem, @drawables),
+      $x,
+      $y,
+      $sample_merged,
+      $sample_average,
+      $average_radius,
+      $color
+    );
   }
-
-  method pick_color (
-    GimpImage        $image,
-    gint             $num_drawables,
+  multi method pick_color (
+    Int()            $num_drawables,
     CArray[GimpItem] $drawables,
-    gdouble          $x,
-    gdouble          $y,
-    gboolean         $sample_merged,
-    gboolean         $sample_average,
-    gdouble          $average_radius,
-    GimpRGB          $color
+    Num()            $x,
+    Num()            $y,
+    Int()            $sample_merged,
+    Int()            $sample_average,
+    Num()            $average_radius,
+    GimpRGB()        $color
   ) {
-    gimp_image_pick_color($!g-i, $num_drawables, $drawables, $x, $y, $sample_merged, $sample_average, $average_radius, $color);
+    my gint      $n        =  $num_drawables;
+    my gdouble  ($xx, $yy) = ($x, $y);
+    my gboolean ($a, $m)   = ($sample_merged, $sample_average).map( *.so.Int );
+
+    gimp_image_pick_color(
+      $!g-i,
+      $n,
+      $drawables,
+      $x,
+      $y,
+      $m,
+      $a,
+      $average_radius,
+      $color
+    );
   }
 
-  method pick_correlate_layer (
-    GimpImage $image,
-    gint      $x,
-    gint      $y
-  ) {
-    gimp_image_pick_correlate_layer($!g-i, $x, $y);
+  method pick_correlate_layer (Int() $x, Int() $y) {
+    my gint ($xx, $yy) = ($x, $y);
+
+    gimp_image_pick_correlate_layer($!g-i, $xx, $yy);
   }
 
-  method policy_color_profile (
-    GimpImage $image,
-    gboolean  $interactive
-  ) {
-    gimp_image_policy_color_profile($!g-i, $interactive);
+  method policy_color_profile (Int() $interactive) {
+    my gboolean  $i = $interactive.so.Int;
+
+    gimp_image_policy_color_profile($!g-i, $i);
   }
 
-  method policy_rotate (
-    GimpImage $image,
-    gboolean  $interactive
-  ) {
-    gimp_image_policy_rotate($!g-i, $interactive);
+  method policy_rotate (Int() $interactive) {
+    my gboolean  $i = $interactive.so.Int;
+
+    gimp_image_policy_rotate($!g-i, $i);
   }
 
-  method raise_item (
-    GimpImage $image,
-    GimpItem  $item
-  ) {
+  method raise_item (GimpItem() $item) {
     gimp_image_raise_item($!g-i, $item);
   }
 
-  method raise_item_to_top (
-    GimpImage $image,
-    GimpItem  $item
-  ) {
+  method raise_item_to_top (GimpItem() $item) {
     gimp_image_raise_item_to_top($!g-i, $item);
   }
 
-  method remove_channel (
-    GimpImage   $image,
-    GimpChannel $channel
-  ) {
+  method remove_channel (GimpChannel() $channel) {
     gimp_image_remove_channel($!g-i, $channel);
   }
 
-  method remove_layer (
-    GimpImage $image,
-    GimpLayer $layer
-  ) {
+  method remove_layer (GimpLayer() $layer) {
     gimp_image_remove_layer($!g-i, $layer);
   }
 
-  method remove_vectors (
-    GimpImage   $image,
-    GimpVectors $vectors
-  ) {
+  method remove_vectors (GimpVectors() $vectors) {
     gimp_image_remove_vectors($!g-i, $vectors);
   }
 
   method reorder_item (
-    GimpImage $image,
-    GimpItem  $item,
-    GimpItem  $parent,
-    gint      $position
+    GimpItem()  $item,
+    GimpItem()  $parent,
+    Int()       $position
   ) {
-    gimp_image_reorder_item($!g-i, $item, $parent, $position);
+    my gint $p = $position;
+
+    gimp_image_reorder_item($!g-i, $item, $parent, $p);
+  }
+
+  method resize (
+    Int() $new_width,
+    Int() $new_height,
+    Int() $offx,
+    Int() $offy
+  ) {
+    my gint ($w, $h, $x, $y) = ($new_width, $new_height, $offx, $offy);
+
+    gimp_image_resize($!g-i, $w, $h, $x, $y);
+  }
+
+  method resize_to_layers {
+    gimp_image_resize_to_layers($!g-i);
+  }
+
+  method rotate (Int() $rotate_type) {
+    my GimpRotationType $r = $rotate_type;
+
+    gimp_image_rotate($!g-i, $r);
+  }
+
+  method scale (Int() $new_width, Int() $new_height) {
+    my gint ($w, $h) = ($new_width, $new_height);
+
+    gimp_image_scale($!g-i, $w, $h);
+  }
+
+  method select_color (
+    Int()          $operation,
+    GimpDrawable() $drawable,
+    GimpRGB()      $color
+  ) {
+    my GimpChannelOps $o = $operation;
+
+    so gimp_image_select_color($!g-i, $o, $drawable, $color);
+  }
+
+  method select_contiguous_color (
+    Int()          $operation,
+    GimpDrawable() $drawable,
+    Num()          $x,
+    Num()          $y
+  ) {
+    my GimpChannelOps  $o        =  $operation;
+    my gdouble        ($xx, $yy) = ($x, $y);
+
+    gimp_image_select_contiguous_color($!g-i, $o, $drawable, $xx, $yy);
+  }
+
+  method select_ellipse (
+    GimpDrawable() $drawable,
+    Num()          $x,
+    Num()          $y,
+    Num()          $width,
+    Num()          $height
+  ) {
+    my gdouble        ($xx, $yy, $w, $h) = ($x, $y, $width, $height);
+
+    gimp_image_select_ellipse($!g-i, $drawable, $xx, $yy, $w, $h);
+  }
+
+  method select_item (
+    Int()      $operation,
+    GimpItem() $item
+  ) {
+    my GimpChannelOps  $o =  $operation;
+
+    gimp_image_select_item($!g-i, $operation, $item);
+  }
+
+  proto method select_polygon (|)
+  { * }
+
+  multi method select_polygon (
+    Int()            $operation,
+                     @segs,
+                    :$num_segs = @segs.elems
+  ) {
+    samewith( $operation, $num_segs, ArrayToCArray(gdouble, @segs) );
+  }
+  multi method select_polygon (
+    Int()           $operation,
+    Int()           $num_segs,
+    CArray[gdouble] $segs
+  ) {
+    my guint           $n = $num_segs;
+    my GimpChannelOps  $o = $operation;
+
+    gimp_image_select_polygon($!g-i, $operation, $num_segs, $segs);
+  }
+
+  proto method select_rectangle (|)
+  { * }
+
+  multi method select_rectangle (
+    Int() $operation,
+    Num() $x,
+    Num() $y,
+    Num() $width,
+    Num() $height
+  ) {
+    my GimpChannelOps  $o                =  $operation;
+    my gdouble        ($xx, $yy, $w, $h) = ($x, $y, $width, $height);
+
+    gimp_image_select_rectangle($!g-i, $o, $xx, $yy, $w, $h);
+  }
+  multi method select_rectangle (
+    Int() $operation,
+    Num() $x,
+    Num() $y,
+    Num() $width,
+    Num() $height,
+    Num() $corner_radius_x,
+    Num() $corner_radius_y
+  ) {
+    my GimpChannelOps  $o =  $operation;
+
+    my gdouble ($xx, $yy, $w, $h, $cx, $cy) =
+      ($x, $y, $width, $height, $corner_radius_x, $corner_radius_y);
+
+    gimp_image_select_round_rectangle($!g-i, $o, $xx, $yy, $w, $h, $cx, $cy);
+  }
+
+  method set_color_profile (GimpColorProfile() $profile) {
+    gimp_image_set_color_profile($!g-i, $profile);
+  }
+
+  method set_color_profile_from_file (GFile() $file) {
+    gimp_image_set_color_profile_from_file($!g-i, $file);
+  }
+
+  proto method set_colormap (|)
+  { * }
+
+  multi method set_colormap (
+           @colormap,
+    Int() :$num_colors = @colormap.elems
+  ) {
+    samewith( ArrayToCArray(uint8, @colormap), @colormap.elems );
+  }
+  multi method set_colormap (
+    CArray[uint8] $colormap,
+    Int()         $num_colors
+  ) {
+    my gint $n = $num_colors;
+
+    gimp_image_set_colormap($!g-i, $colormap, $n);
   }
 
   method set_component_active (
-    GimpImage       $image,
-    GimpChannelType $component,
-    gboolean        $active
+    Int() $component,
+    Int() $active
   ) {
-    gimp_image_set_component_active($!g-i, $component, $active);
+    my GimpChannelType $c = $component;
+    my gboolean        $a = $active.so.Int;
+
+    gimp_image_set_component_active($!g-i, $component, $a);
   }
 
   method set_component_visible (
-    GimpImage       $image,
-    GimpChannelType $component,
-    gboolean        $visible
+    Int() $component,
+    Int() $visible
   ) {
-    gimp_image_set_component_visible($!g-i, $component, $visible);
+    my GimpChannelType $c = $component;
+    my gboolean        $v = $visible.so.Int;
+
+    gimp_image_set_component_visible($!g-i, $component, $v);
   }
 
-  method set_file (
-    GimpImage $image,
-    GFile     $file
-  ) {
+  method set_file (GFile() $file) {
     gimp_image_set_file($!g-i, $file);
   }
 
-  method set_resolution (
-    GimpImage $image,
-    gdouble   $xresolution,
-    gdouble   $yresolution
-  ) {
-    gimp_image_set_resolution($!g-i, $xresolution, $yresolution);
+  method set_metadata (GimpMetadata() $metadata) {
+    gimp_image_set_metadata($!g-i, $metadata);
   }
 
-  method set_selected_channels (
-    GimpImage           $image,
-    gint                $num_channels,
+  method set_resolution (Num() $xresolution, Num() $yresolution) {
+    my gdouble ($x, $y)  = ($xresolution, $yresolution);
+
+    so gimp_image_set_resolution($!g-i, $x, $y);
+  }
+
+  proto method set_selected_channels (|)
+  { * }
+
+  multi method set_selected_channels (@channels) {
+    samewith( ArrayToCArray(GimpChannel, @channels) );
+  }
+  multi method set_selected_channels (
+    Num()               $num,
     CArray[GimpChannel] $channels
   ) {
-    gimp_image_set_selected_channels($!g-i, $num_channels, $channels);
+    my gint $n = $num;
+    gimp_image_set_selected_channels($!g-i, $num, $channels);
   }
 
-  method set_selected_layers (
-    GimpImage         $image,
-    gint              $num_layers,
+  proto method set_selected_layers (|)
+  { * }
+
+  multi method set_selected_layers (@layers) {
+    samewith( ArrayToCArray(GimpLayer, @layers) );
+  }
+  multi method set_selected_layers (
+    Num()             $num,
     CArray[GimpLayer] $layers
   ) {
-    gimp_image_set_selected_layers($!g-i, $num_layers, $layers);
+    my gint $n = $num;
+    gimp_image_set_selected_layers($!g-i, $num, $layers);
   }
 
-  method set_selected_vectors (
-    GimpImage           $image,
-    gint                $num_vectors,
+  proto method set_selected_vectors (|)
+  { * }
+
+  multi method set_selected_vectors (@vectors) {
+    samewith( ArrayToCArray(@vectors) );
+  }
+  multi method set_selected_vectors (
+    Num()               $num,
     CArray[GimpVectors] $vectors
   ) {
-    gimp_image_set_selected_vectors($!g-i, $num_vectors, $vectors);
+    my gint $n = $num;
+    gimp_image_set_selected_vectors($!g-i, $num, $vectors);
   }
 
-  method set_tattoo_state (
-    GimpImage $image,
-    guint     $tattoo_state
-  ) {
-    gimp_image_set_tattoo_state($!g-i, $tattoo_state);
+  method set_simulation_bpc (Int() $bpc) {
+    my gboolean $b = $bpc.so.Int;
+
+    gimp_image_set_simulation_bpc($!g-i, $bpc);
   }
 
-  method set_unit (
-    GimpImage $image,
-    GimpUnit  $unit
-  ) {
+  method set_simulation_intent (Int() $intent) {
+    my GimpColorRenderingIntent $i = $intent;
+
+    gimp_image_set_simulation_intent($!g-i, $i);
+  }
+
+  method set_simulation_profile (GimpColorProfile() $profile) {
+    gimp_image_set_simulation_profile($!g-i, $profile);
+  }
+
+  method set_simulation_profile_from_file (GFile() $file) {
+    gimp_image_set_simulation_profile_from_file($!g-i, $file);
+  }
+
+  method set_tattoo_state (Int() $tattoo_state) {
+    my guint $t = $tattoo_state;
+
+    gimp_image_set_tattoo_state($!g-i, $t);
+  }
+
+  method set_unit (GimpUnit() $unit) {
     gimp_image_set_unit($!g-i, $unit);
+  }
+
+  method take_selected_channels (
+    GList()  $channels,
+            :$raw       = False,
+            :$glist     = False
+  ) {
+    returnGList(
+      gimp_image_take_selected_channels($!g-i, $channels),
+      $raw,
+      $glist,
+      |GIMP::Channel.getTypePair
+    );
+  }
+
+  method take_selected_layers (
+    GList()  $layers,
+            :$raw      = False,
+            :$glist    = False
+  ) {
+    returnGList(
+      gimp_image_take_selected_layers($!g-i, $layers),
+      $raw,
+      $glist,
+      |GIMP::Layer.getTypePair
+    );
+  }
+
+  method take_selected_vectors (
+    GList()  $vectors,
+            :$raw      = False,
+            :$glist    = False
+  ) {
+    returnGList(
+      gimp_image_take_selected_vectors($!g-i, $vectors),
+      $raw,
+      $glist,
+      |GIMP::Vector.getTypePair
+    );
   }
 
   method thaw_channels {
@@ -739,227 +1563,6 @@
 
   method thaw_vectors {
     gimp_image_thaw_vectors($!g-i);
-  }
-
-  method unset_active_channel {
-    gimp_image_unset_active_channel($!g-i);
-  }
-
-  method select_color (
-    GimpChannelOps $operation,
-    GimpDrawable   $drawable,
-    GimpRGB        $color
-  ) {
-    gimp_image_select_color($!g-i, $operation, $drawable, $color);
-  }
-
-  method select_contiguous_color (
-    GimpChannelOps $operation,
-    GimpDrawable   $drawable,
-    gdouble        $x,
-    gdouble        $y
-  ) {
-    gimp_image_select_contiguous_color($!g-i, $operation, $drawable, $x, $y);
-  }
-
-  method select_ellipse (
-    GimpChannelOps $operation,
-    gdouble        $x,
-    gdouble        $y,
-    gdouble        $width,
-    gdouble        $height
-  ) {
-    gimp_image_select_ellipse($!g-i, $operation, $x, $y, $width, $height);
-  }
-
-  method select_item (
-    GimpChannelOps $operation,
-    GimpItem       $item
-  ) {
-    gimp_image_select_item($!g-i, $operation, $item);
-  }
-
-  method select_polygon (
-    GimpChannelOps $operation,
-    gint           $num_segs,
-    gdouble        $segs is rw
-  ) {
-    gimp_image_select_polygon($!g-i, $operation, $num_segs, $segs);
-  }
-
-  method select_rectangle (
-    GimpChannelOps $operation,
-    gdouble        $x,
-    gdouble        $y,
-    gdouble        $width,
-    gdouble        $height
-  ) {
-    gimp_image_select_rectangle($!g-i, $operation, $x, $y, $width, $height);
-  }
-
-  method select_round_rectangle (
-    GimpChannelOps $operation,
-    gdouble        $x,
-    gdouble        $y,
-    gdouble        $width,
-    gdouble        $height,
-    gdouble        $corner_radius_x,
-    gdouble        $corner_radius_y
-  ) {
-    gimp_image_select_round_rectangle($!g-i, $operation, $x, $y, $width, $height, $corner_radius_x, $corner_radius_y);
-  }
-
-  method _convert_color_profile (
-    GBytes                   $color_profile,
-    GimpColorRenderingIntent $intent,
-    gboolean                 $bpc
-  ) {
-    _gimp_image_convert_color_profile($!g-i, $color_profile, $intent, $bpc);
-  }
-
-
-
-  method convert_color_profile_from_file (
-    GFile                    $file,
-    GimpColorRenderingIntent $intent,
-    gboolean                 $bpc
-  ) {
-    gimp_image_convert_color_profile_from_file($!g-i, $file, $intent, $bpc);
-  }
-
-  method get_simulation_bpc {
-    gimp_image_get_simulation_bpc($!g-i);
-  }
-
-  method get_simulation_intent {
-    gimp_image_get_simulation_intent($!g-i);
-  }
-
-  method set_color_profile_from_file (GFile     $file) {
-    gimp_image_set_color_profile_from_file($!g-i, $file);
-  }
-
-  method set_simulation_bpc (gboolean  $bpc) {
-    gimp_image_set_simulation_bpc($!g-i, $bpc);
-  }
-
-  method set_simulation_intent (GimpColorRenderingIntent $intent) {
-    gimp_image_set_simulation_intent($!g-i, $intent);
-  }
-
-  method set_simulation_profile_from_file (GFile     $file) {
-    gimp_image_set_simulation_profile_from_file($!g-i, $file);
-  }
-
-  method crop (
-    gint      $new_width,
-    gint      $new_height,
-    gint      $offx,
-    gint      $offy
-  ) {
-    gimp_image_crop($!g-i, $new_width, $new_height, $offx, $offy);
-  }
-
-  method flip (GimpOrientationType $flip_type) {
-    gimp_image_flip($!g-i, $flip_type);
-  }
-
-  method resize (
-    gint      $new_width,
-    gint      $new_height,
-    gint      $offx,
-    gint      $offy
-  ) {
-    gimp_image_resize($!g-i, $new_width, $new_height, $offx, $offy);
-  }
-
-  method resize_to_layers {
-    gimp_image_resize_to_layers($!g-i);
-  }
-
-  method rotate (GimpRotationType $rotate_type) {
-    gimp_image_rotate($!g-i, $rotate_type);
-  }
-
-  method scale (
-    gint      $new_width,
-    gint      $new_height
-  ) {
-    gimp_image_scale($!g-i, $new_width, $new_height);
-  }
-
-  method convert_color_profile (
-    GimpColorProfile         $profile,
-    GimpColorRenderingIntent $intent,
-    gboolean                 $bpc
-  ) {
-    gimp_image_convert_color_profile($!g-i, $profile, $intent, $bpc);
-  }
-
-  method get_color_profile {
-    gimp_image_get_color_profile($!g-i);
-  }
-
-  method get_effective_color_profile {
-    gimp_image_get_effective_color_profile($!g-i);
-  }
-
-  method get_simulation_profile {
-    gimp_image_get_simulation_profile($!g-i);
-  }
-
-  method set_color_profile (GimpColorProfile $profile) {
-    gimp_image_set_color_profile($!g-i, $profile);
-  }
-
-  method set_simulation_profile (GimpColorProfile $profile) {
-    gimp_image_set_simulation_profile($!g-i, $profile);
-  }
-
-  method add_hguide (gint      $yposition) {
-    gimp_image_add_hguide($!g-i, $yposition);
-  }
-
-  method add_vguide (gint      $xposition) {
-    gimp_image_add_vguide($!g-i, $xposition);
-  }
-
-  method delete_guide (guint     $guide) {
-    gimp_image_delete_guide($!g-i, $guide);
-  }
-
-  method find_next_guide (guint     $guide) {
-    gimp_image_find_next_guide($!g-i, $guide);
-  }
-
-  method get_guide_orientation (guint     $guide) {
-    gimp_image_get_guide_orientation($!g-i, $guide);
-  }
-
-  method get_guide_position (guint     $guide) {
-    gimp_image_get_guide_position($!g-i, $guide);
-  }
-
-  method add_sample_point (
-    gint      $position_x,
-    gint      $position_y
-  ) {
-    gimp_image_add_sample_point($!g-i, $position_x, $position_y);
-  }
-
-  method delete_sample_point (guint     $sample_point) {
-    gimp_image_delete_sample_point($!g-i, $sample_point);
-  }
-
-  method find_next_sample_point (guint     $sample_point) {
-    gimp_image_find_next_sample_point($!g-i, $sample_point);
-  }
-
-  method get_sample_point_position (
-    guint     $sample_point,
-    gint      $position_y is rw
-  ) {
-    gimp_image_get_sample_point_position($!g-i, $sample_point, $position_y);
   }
 
   method undo_disable {
@@ -989,3 +1592,9 @@
   method undo_thaw {
     gimp_image_undo_thaw($!g-i);
   }
+
+  method unset_active_channel {
+    gimp_image_unset_active_channel($!g-i);
+  }
+
+}

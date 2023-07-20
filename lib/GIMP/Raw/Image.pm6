@@ -23,7 +23,7 @@ sub gimp_image_get_colormap (
   gint      $colormap_len is rw,
   gint      $num_colors is rw
 )
-  returns Str
+  returns CArray[uint8]
   is      native(gimp)
   is      export
 { * }
@@ -117,9 +117,9 @@ sub gimp_image_list_vectors (GimpImage $image)
 { * }
 
 sub gimp_image_set_colormap (
-  GimpImage $image,
-  Str       $colormap,
-  gint      $num_colors
+  GimpImage     $image,
+  CArray[uint8] $colormap,
+  gint          $num_colors
 )
   returns uint32
   is      native(gimp)
@@ -1516,6 +1516,12 @@ sub gimp_image_get_sample_point_position (
   gint      $position_y    is rw
 )
   returns gint
+  is      native(gimp)
+  is      export
+{ * }
+
+sub gimp_image_get_type
+  returns GType
   is      native(gimp)
   is      export
 { * }
