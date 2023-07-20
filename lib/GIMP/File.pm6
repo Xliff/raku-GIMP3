@@ -8,7 +8,7 @@ use GIMP::Raw::File;
 use GLib::Roles::StaticClass;
 
 class GIMP::File {
-  also does GLib::Roles::StaticClass;
+  has GimpImage $!this is built;
 
   method !resolveRunMode (
     :i(:$interactive),
@@ -89,7 +89,26 @@ class GIMP::File {
   { * }
 
   multi method load_layers (
-    GimpImage()  $image,
+    GFile()      $file,
+                :$raw    = False,
+                :$carray = False,
+                :i(:$interactive),
+                :n(:non_interactive(:non-interactive(:$noninteractive))),
+                :l(:last(:last_vals(:last-vals(:$lastvals))))
+  ) {
+    samewith(
+      $!this,
+      $file,
+      $,
+     :$raw,
+     :$carray,
+     :$interactive,
+     :$noninteractive,
+     :$lastvals
+    );
+  }
+  multi method load_layers (
+    GimpImage()  $image where *.defined,
     GFile()      $file,
                 :$raw    = False,
                 :$carray = False,
@@ -127,7 +146,25 @@ class GIMP::File {
   }
 
   multi method save (
-    GimpImage()  $image,
+    GFile() $file,
+            @drawables,
+            :$raw = False,
+            :i(:$interactive),
+            :n(:non_interactive(:non-interactive(:$noninteractive))),
+            :l(:last(:last_vals(:last-vals(:$lastvals))))
+  ) {
+    samewith(
+      $!this,
+      @drawables,
+      $file,
+      :$raw,
+      :$interactive,
+      :$noninteractive,
+      :$lastvals
+    );
+  }
+  multi method save (
+    GimpImage()  $image      where *.defined,
                  @drawables,
     GFile()      $file,
                 :$raw = False,
