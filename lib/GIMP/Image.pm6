@@ -7,6 +7,7 @@ use GIMP::Raw::Types;
 use GIMP::Raw::Image;
 
 use GLib::GList;
+use GIMP::File;
 
 use GLib::Roles::Implementor;
 use GLib::Roles::Object;
@@ -289,9 +290,10 @@ class GIMP::Image {
     }
   }
 
-  has Convert  $.convert;
-  has Grid     $.grid;
-  has Metadata $.metadata;
+  has Convert    $.convert;
+  has Grid       $.grid;
+  has GIMP::File $.file;
+  has Metadata   $.metadata;
 
   submethod BUILD ( :$gimp-image ) {
     self.setGimpImage($gimp-image) if $gimp-image
@@ -313,9 +315,10 @@ class GIMP::Image {
     }
     self!setObject($to-parent);
 
-    $.convert  .= new( this => $!g-i );
-    $.grid     .= new( this => $!g-i );
-    $.metadata .= new( this => $!g-i );
+    $.convert  .= new( this  => $!g-i );
+    $.grid     .= new( this  => $!g-i );
+    $.file     .= new( image => $!g-i );
+    $.metadata .= new( this  => $!g-i );
   }
 
   method GIMP::Raw::Definitions::GimpImage
