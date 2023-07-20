@@ -52,16 +52,18 @@ class GIMP::UI::Ruler is GTK::Widget {
 
   # Type: GimpOrientation
   method orientation ( :$enum = True ) is rw  is g-property {
-    my $gv = GLib::Value.new( GLib::Value.typeFromEnum(GtkOrientation) );
+    my $gv = GLib::Value.new(
+      GLib::Value.typeFromEnum(GimpOrientationType)
+    );
     Proxy.new(
       FETCH => sub ($) {
         self.prop_get('orientation', $gv);
         my $o = $gv.enum;
         return $o unless $enum;
-        GtkOrientationEnum($o);
+        GimpOrientationTypeEnum($o);
       },
       STORE => -> $, Int() $val is copy {
-        $gv.valueFromEnum(GtkOrientation) = $val;
+        $gv.valueFromEnum(GimpOrientationType) = $val;
         self.prop_set('orientation', $gv);
       }
     );
@@ -101,10 +103,8 @@ class GIMP::UI::Ruler is GTK::Widget {
     gimp_ruler_add_track_widget($!g-r, $widget);
   }
 
-  method get_position ( :$enum = True ) {
-    my $p = gimp_ruler_get_position($!g-r);
-    return $p unless $enum;
-    GtkOrientationEnum($p);
+  method get_position {
+    gimp_ruler_get_position($!g-r);
   }
 
   proto method get_range (|)
