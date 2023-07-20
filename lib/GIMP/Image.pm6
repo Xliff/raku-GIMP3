@@ -1,5 +1,7 @@
 use v6.c;
 
+use Method::Also;
+
 use NativeCall;
 
 use GLib::Raw::Traits;
@@ -89,6 +91,7 @@ class GIMP::Image {
     }
 
     proto method set_dither_matrix (|)
+    is also<set-dither-matrix>
     { * }
 
     multi method set_dither_matrix (Int() $width, Int() $height, @matrix) {
@@ -110,6 +113,7 @@ class GIMP::Image {
     has $!this is built;
 
     proto method get_background_color (|)
+    is also<get-background-color>
     { * }
 
     multi method get_background_color ( :$raw = False ) {
@@ -124,6 +128,7 @@ class GIMP::Image {
     }
 
     proto method get_foreground_color (|)
+    is also<get-foreground-color>
     { * }
 
     multi method get_foreground_color ( :$raw = False ) {
@@ -138,6 +143,7 @@ class GIMP::Image {
     }
 
     proto method get_offset (|)
+    is also<get-offset>
     { * }
 
     multi method get_offset {
@@ -151,6 +157,7 @@ class GIMP::Image {
     }
 
     proto method get_spacing (|)
+    is also<get-spacing>
     { * }
 
     multi method get_spacing {
@@ -162,33 +169,33 @@ class GIMP::Image {
       gimp_image_grid_get_spacing($!this, $x, $y);
     }
 
-    method get_style ( :$enum = True ) {
+    method get_style ( :$enum = True ) is also<get-style> {
       my $s = gimp_image_grid_get_style($!this);
       return $s unless $enum;
       GimpGridStyleEnum($s);
     }
 
-    method set_background_color (GimpRGB() $bgcolor) {
+    method set_background_color (GimpRGB() $bgcolor) is also<set-background-color> {
       gimp_image_grid_set_background_color($!this, $bgcolor);
     }
 
-    method set_foreground_color (GimpRGB() $fgcolor) {
+    method set_foreground_color (GimpRGB() $fgcolor) is also<set-foreground-color> {
       gimp_image_grid_set_foreground_color($!this, $fgcolor);
     }
 
-    method set_offset (Num() $xoffset, Num() $yoffset) {
+    method set_offset (Num() $xoffset, Num() $yoffset) is also<set-offset> {
       my gdouble ($x, $y) = ($xoffset, $yoffset);
 
       gimp_image_grid_set_offset($!this, $xoffset, $yoffset);
     }
 
-    method set_spacing (Num() $xspacing, Num() $yspacing) {
+    method set_spacing (Num() $xspacing, Num() $yspacing) is also<set-spacing> {
       my gdouble ($x, $y) = ($xspacing, $yspacing);
 
       gimp_image_grid_set_spacing($!this, $xspacing, $yspacing);
     }
 
-    method set_style (Int() $style) {
+    method set_style (Int() $style) is also<set-style> {
       my GimpGridStyle $s = $style;
 
       gimp_image_grid_set_style($!this, $s);
@@ -203,7 +210,9 @@ class GIMP::Image {
       Str()          $mime_type,
       GimpMetadata() $metadata,
       Int()          $flags
-    ) {
+    ) 
+    is also<load-finish>
+  {
       my GimpMetadataLoadFlags $f = $flags;
 
       gimp_image_metadata_load_finish($!this, $mime_type, $metadata, $f);
@@ -213,7 +222,9 @@ class GIMP::Image {
       Str()                   $mime_type,
       GFile()                 $file,
       CArray[Pointer[GError]] $error = gerror
-    ) {
+    ) 
+    is also<load-prepare>
+  {
       clear_error;
       my $rv = so gimp_image_metadata_load_prepare(
         $!this,
@@ -228,7 +239,9 @@ class GIMP::Image {
     method load_thumbnail (
       CArray[Pointer[GError]]  $error = gerror,
                               :$raw   = False
-    ) {
+    ) 
+    is also<load-thumbnail>
+  {
       clear_error;
       my $t = propReturnObject(
         gimp_image_metadata_load_thumbnail($!this, $error),
@@ -245,7 +258,9 @@ class GIMP::Image {
       Int()                   $flags,
       GFile()                 $file,
       CArray[Pointer[GError]] $error       = gerror
-    ) {
+    ) 
+    is also<save-filter>
+  {
       my GimpMetadataSaveFlags $f = $flags;
 
       clear_error;
@@ -267,7 +282,9 @@ class GIMP::Image {
       Int()                   $flags,
       GFile()                 $file,
       CArray[Pointer[GError]] $error       = gerror
-    ) {
+    ) 
+    is also<save-finish>
+  {
       my GimpMetadataSaveFlags $f = $flags;
 
       clear_error;
@@ -283,7 +300,7 @@ class GIMP::Image {
       $rv;
     }
 
-    method save_prepare (Str() $mime_type, Int() $suggested_flags) {
+    method save_prepare (Str() $mime_type, Int() $suggested_flags) is also<save-prepare> {
       my GimpMetadataSaveFlags $f = $suggested_flags;
 
       gimp_image_metadata_save_prepare($!this, $mime_type, $f);
@@ -345,7 +362,9 @@ class GIMP::Image {
     Int() $height,
     Int() $type,
     Int() $precision
-  ) {
+  ) 
+    is also<new-with-precision>
+  {
     my gint              ($w, $h) = ($width, $height);
     my GimpImageBaseType  $t      =  $type;
     my GimpPrecision      $p      =  $precision;
@@ -355,29 +374,29 @@ class GIMP::Image {
     $gimp-image ?? self.bless( :$gimp-image ) !! Nil;
   }
 
-  method add_hguide (Int() $yposition) {
+  method add_hguide (Int() $yposition) is also<add-hguide> {
     my gint $y = $yposition;
 
     gimp_image_add_hguide($!g-i, $y);
   }
 
-  method add_sample_point (Int() $position_x, Int() $position_y) {
+  method add_sample_point (Int() $position_x, Int() $position_y) is also<add-sample-point> {
     my gint ($x, $y) = ($position_x, $position_y);
 
     gimp_image_add_sample_point($!g-i, $x, $y);
   }
 
-  method add_vguide (Int() $xposition) {
+  method add_vguide (Int() $xposition) is also<add-vguide> {
     my gint $x = $xposition;
 
     gimp_image_add_vguide($!g-i, $x);
   }
 
-  method attach_parasite (GimpParasite() $parasite) {
+  method attach_parasite (GimpParasite() $parasite) is also<attach-parasite> {
     gimp_image_attach_parasite($!g-i, $parasite);
   }
 
-  method clean_all {
+  method clean_all is also<clean-all> {
     gimp_image_clean_all($!g-i);
   }
 
@@ -385,7 +404,9 @@ class GIMP::Image {
     GimpColorProfile() $profile,
     Int()              $intent,
     Int()              $bpc
-  ) {
+  ) 
+    is also<convert-color-profile>
+  {
     my GimpColorRenderingIntent $i = $intent;
     my gboolean                 $b = $bpc.so.Int;
 
@@ -396,7 +417,9 @@ class GIMP::Image {
     GFile() $file,
     Int()   $intent,
     Int()   $bpc
-  ) {
+  ) 
+    is also<convert-color-profile-from-file>
+  {
     my GimpColorRenderingIntent $i = $intent;
     my gboolean                 $b = $bpc.so.Int;
 
@@ -418,19 +441,19 @@ class GIMP::Image {
     gimp_image_delete($!g-i);
   }
 
-  method delete_guide (Int() $guide) {
+  method delete_guide (Int() $guide) is also<delete-guide> {
     my guint $g = $guide;
 
     gimp_image_delete_guide($!g-i, $g);
   }
 
-  method delete_sample_point (Int() $sample_point) {
+  method delete_sample_point (Int() $sample_point) is also<delete-sample-point> {
     my guint $s = $sample_point;
 
     gimp_image_delete_sample_point($!g-i, $s);
   }
 
-  method detach_parasite (Str() $name) {
+  method detach_parasite (Str() $name) is also<detach-parasite> {
     gimp_image_detach_parasite($!g-i, $name);
   }
 
@@ -442,13 +465,13 @@ class GIMP::Image {
     );
   }
 
-  method find_next_guide (Int() $guide) {
+  method find_next_guide (Int() $guide) is also<find-next-guide> {
     my guint $g = $guide;
 
     gimp_image_find_next_guide($!g-i, $g);
   }
 
-  method find_next_sample_point (Int() $sample_point) {
+  method find_next_sample_point (Int() $sample_point) is also<find-next-sample-point> {
     my guint $s = $sample_point;
 
     gimp_image_find_next_sample_point($!g-i, $sample_point);
@@ -464,31 +487,31 @@ class GIMP::Image {
     gimp_image_flip($!g-i, $f);
   }
 
-  method floating_sel_attached_to {
+  method floating_sel_attached_to is also<floating-sel-attached-to> {
     gimp_image_floating_sel_attached_to($!g-i);
   }
 
-  method freeze_channels {
+  method freeze_channels is also<freeze-channels> {
     gimp_image_freeze_channels($!g-i);
   }
 
-  method freeze_layers {
+  method freeze_layers is also<freeze-layers> {
     gimp_image_freeze_layers($!g-i);
   }
 
-  method freeze_vectors {
+  method freeze_vectors is also<freeze-vectors> {
     gimp_image_freeze_vectors($!g-i);
   }
 
-  method get_base_type {
+  method get_base_type is also<get-base-type> {
     gimp_image_get_base_type($!g-i);
   }
 
-  method get_by_id {
+  method get_by_id is also<get-by-id> {
     gimp_image_get_by_id($!g-i);
   }
 
-  method get_channel_by_name (Str() $name, :$raw = False) {
+  method get_channel_by_name (Str() $name, :$raw = False) is also<get-channel-by-name> {
     propReturnObject(
       gimp_image_get_channel_by_name($!g-i, $name),
       $raw,
@@ -496,7 +519,7 @@ class GIMP::Image {
     );
   }
 
-  method get_channel_by_tattoo (Int() $tattoo, :$raw = False) {
+  method get_channel_by_tattoo (Int() $tattoo, :$raw = False) is also<get-channel-by-tattoo> {
     my guint $t = $tattoo;
 
     propReturnObject(
@@ -507,6 +530,7 @@ class GIMP::Image {
   }
 
   proto method get_channels (|)
+    is also<get-channels>
   { * }
 
   multi method get_channels ( :$raw = False ,:gslist(:$glist) = False) {
@@ -524,13 +548,14 @@ class GIMP::Image {
     returnGList($l, $raw, $glist, |GIMP::Channel.getTypePair)
   }
 
-  method get_color_profile {
+  method get_color_profile is also<get-color-profile> {
     gimp_image_get_color_profile($!g-i);
   }
 
   # cw: Defaults to FALSE because specifying :$array will provide
   #     a COPY, not live data.
   proto method get_colormap (|)
+    is also<get-colormap>
   { * }
 
   multi method get_colormap ( :$array = False ) {
@@ -552,25 +577,25 @@ class GIMP::Image {
     $a;
   }
 
-  method get_component_active (Int() $component) {
+  method get_component_active (Int() $component) is also<get-component-active> {
     my GimpChannelType $c = $component;
 
     so gimp_image_get_component_active($!g-i, $c);
   }
 
-  method get_component_visible (Int() $component) {
+  method get_component_visible (Int() $component) is also<get-component-visible> {
     my GimpChannelType $c = $component;
 
     so gimp_image_get_component_visible($!g-i, $c);
   }
 
-  method get_default_new_layer_mode ( :$enum = True ) {
+  method get_default_new_layer_mode ( :$enum = True ) is also<get-default-new-layer-mode> {
     my $m = gimp_image_get_default_new_layer_mode($!g-i);
     return $m unless $enum;
     GimpLayerModeEnum($m);
   }
 
-  method get_effective_color_profile ( :$raw = False ) {
+  method get_effective_color_profile ( :$raw = False ) is also<get-effective-color-profile> {
     propReturnObject(
       gimp_image_get_effective_color_profile($!g-i),
       $raw,
@@ -578,7 +603,7 @@ class GIMP::Image {
     );
   }
 
-  method get_exported_file ( :$raw = False ) {
+  method get_exported_file ( :$raw = False ) is also<get-exported-file> {
     propReturnObject(
       gimp_image_get_exported_file($!g-i),
       $raw,
@@ -586,7 +611,7 @@ class GIMP::Image {
     );
   }
 
-  method get_file ( :$raw = False ) {
+  method get_file ( :$raw = False ) is also<get-file> {
     propReturnObject(
       gimp_image_get_file($!g-i),
       $raw,
@@ -594,7 +619,7 @@ class GIMP::Image {
     )
   }
 
-  method get_floating_sel ( :$raw = False ) {
+  method get_floating_sel ( :$raw = False ) is also<get-floating-sel> {
     propReturnObject(
       gimp_image_get_floating_sel($!g-i),
       $raw,
@@ -602,7 +627,7 @@ class GIMP::Image {
     );
   }
 
-  method get_guide_orientation (Int() $guide, :$enum = True) {
+  method get_guide_orientation (Int() $guide, :$enum = True) is also<get-guide-orientation> {
     my guint $g = $guide;
 
     my $o = gimp_image_get_guide_orientation($!g-i, $g);
@@ -610,7 +635,7 @@ class GIMP::Image {
     GimpOrientationTypeEnum($o);
   }
 
-  method get_guide_position (Int() $guide, :$enum = True) {
+  method get_guide_position (Int() $guide, :$enum = True) is also<get-guide-position> {
     my guint $g = $guide;
 
     my $o = gimp_image_get_guide_position($!g-i, $guide);
@@ -618,15 +643,15 @@ class GIMP::Image {
     GimpOrientationTypeEnum($o);
   }
 
-  method get_height {
+  method get_height is also<get-height> {
     gimp_image_get_height($!g-i);
   }
 
-  method get_id {
+  method get_id is also<get-id> {
     gimp_image_get_id($!g-i);
   }
 
-  method get_imported_file ( :$raw = False ) {
+  method get_imported_file ( :$raw = False ) is also<get-imported-file> {
     propReturnObject(
       gimp_image_get_imported_file($!g-i),
       $raw,
@@ -634,11 +659,11 @@ class GIMP::Image {
     );
   }
 
-  method get_item_position (GimpItem()  $item) {
+  method get_item_position (GimpItem()  $item) is also<get-item-position> {
     gimp_image_get_item_position($!g-i, $item);
   }
 
-  method get_layer_by_name (Str() $name, :$raw = False) {
+  method get_layer_by_name (Str() $name, :$raw = False) is also<get-layer-by-name> {
     propReturnObject(
       gimp_image_get_layer_by_name($!g-i, $name),
       $raw,
@@ -646,7 +671,7 @@ class GIMP::Image {
     );
   }
 
-  method get_layer_by_tattoo (Int() $tattoo, :$raw = False) {
+  method get_layer_by_tattoo (Int() $tattoo, :$raw = False) is also<get-layer-by-tattoo> {
     my guint $t = $tattoo;
 
     propReturnObject(
@@ -657,6 +682,7 @@ class GIMP::Image {
   }
 
   proto method get_layers (|)
+    is also<get-layers>
   { * }
 
   multi method get_layers (:$raw = False, :gslist(:$glist) = False ) {
@@ -679,7 +705,7 @@ class GIMP::Image {
     $ll;
   }
 
-  method get_metadata ( :$raw = False ) {
+  method get_metadata ( :$raw = False ) is also<get-metadata> {
     propReturnObject(
       gimp_image_get_metadata($!g-i),
       $raw,
@@ -687,11 +713,11 @@ class GIMP::Image {
     );
   }
 
-  method get_name {
+  method get_name is also<get-name> {
     gimp_image_get_name($!g-i);
   }
 
-  method get_parasite (Str() $name, :$raw = False) {
+  method get_parasite (Str() $name, :$raw = False) is also<get-parasite> {
     propReturnObject(
       gimp_image_get_parasite($!g-i, $name),
       $raw,
@@ -699,7 +725,7 @@ class GIMP::Image {
     );
   }
 
-  method get_parasite_list ( :$raw = False, :gslist(:$glist) ) {
+  method get_parasite_list ( :$raw = False, :gslist(:$glist) ) is also<get-parasite-list> {
     returnGList(
       gimp_image_get_parasite_list($!g-i),
       $raw,
@@ -708,13 +734,14 @@ class GIMP::Image {
     );
   }
 
-  method get_precision ( :$enum = True ) {
+  method get_precision ( :$enum = True ) is also<get-precision> {
     my $p = gimp_image_get_precision($!g-i);
     return $p unless $enum;
     GimpPrecisionEnum($p);
   }
 
   proto method get_resolution (|)
+    is also<get-resolution>
   { * }
 
   multi method get_resolution {
@@ -730,6 +757,7 @@ class GIMP::Image {
   }
 
   proto method get_sample_point_position (|)
+    is also<get-sample-point-position>
   { * }
 
   multi method get_sample_point_position (Int() $sample_point) {
@@ -747,6 +775,7 @@ class GIMP::Image {
   }
 
   proto method get_selected_channels (|)
+    is also<get-selected-channels>
   { * }
 
   multi method get_selected_channels (
@@ -773,6 +802,7 @@ class GIMP::Image {
   }
 
   proto method get_selected_drawables (|)
+    is also<get-selected-drawables>
   { * }
 
   multi method get_selected_drawables (
@@ -799,6 +829,7 @@ class GIMP::Image {
   }
 
   proto method get_selected_layers (|)
+    is also<get-selected-layers>
   { * }
 
   multi method get_selected_layers (
@@ -825,6 +856,7 @@ class GIMP::Image {
   }
 
   proto method get_selected_vectors (|)
+    is also<get-selected-vectors>
   { * }
 
   multi method get_selected_vectors (
@@ -850,7 +882,7 @@ class GIMP::Image {
     $cl;
   }
 
-  method get_selection ( :$raw = False ) {
+  method get_selection ( :$raw = False ) is also<get-selection> {
     propReturnObject(
       gimp_image_get_selection($!g-i),
       $raw,
@@ -858,17 +890,17 @@ class GIMP::Image {
     );
   }
 
-  method get_simulation_bpc {
+  method get_simulation_bpc is also<get-simulation-bpc> {
     so gimp_image_get_simulation_bpc($!g-i);
   }
 
-  method get_simulation_intent ( :$enum = True ) {
+  method get_simulation_intent ( :$enum = True ) is also<get-simulation-intent> {
     my $i = gimp_image_get_simulation_intent($!g-i);
     return $i unless $enum;
     GimpColorRenderingIntentEnum($i);
   }
 
-  method get_simulation_profile ( :$raw = False ) {
+  method get_simulation_profile ( :$raw = False ) is also<get-simulation-profile> {
     propReturnObject(
       gimp_image_get_simulation_profile($!g-i),
       $raw,
@@ -876,7 +908,7 @@ class GIMP::Image {
     );
   }
 
-  method get_tattoo_state {
+  method get_tattoo_state is also<get-tattoo-state> {
     gimp_image_get_tattoo_state($!g-i);
   }
 
@@ -885,7 +917,9 @@ class GIMP::Image {
     Int()  $height,
     Int()  $alpha,
           :$raw      = False
-  ) {
+  ) 
+    is also<get-thumbnail>
+  {
     my gint                   ($w, $h) = ($width, $height);
     my GimpPixbufTransparency  $a      =  $alpha;
 
@@ -896,13 +930,14 @@ class GIMP::Image {
     );
   }
 
-  method get_type {
+  method get_type is also<get-type> {
     state ($n, $t);
 
     unstable_get_type( self.^name, &gimp_image_get_type, $n, $t );
   }
 
   proto method get_thumbnail_data (|)
+    is also<get-thumbnail-data>
   { * }
 
   multi method get_thumbnail_data ( :$buf = False ) {
@@ -922,7 +957,7 @@ class GIMP::Image {
     Buf.new($d)
   }
 
-  method get_unit ( :$raw = False ) {
+  method get_unit ( :$raw = False ) is also<get-unit> {
     propReturnObject(
       gimp_image_get_unit($!g-i),
       $raw,
@@ -931,6 +966,7 @@ class GIMP::Image {
   }
 
   proto method get_vectors (|)
+    is also<get-vectors>
   { * }
 
   multi method get_vectors (
@@ -951,7 +987,7 @@ class GIMP::Image {
     CArrayToArray($va).map({ GIMP::Vector.new($_) });
   }
 
-  method get_vectors_by_name (Str() $name, :$raw = False) {
+  method get_vectors_by_name (Str() $name, :$raw = False) is also<get-vectors-by-name> {
     propReturnObject(
       gimp_image_get_vectors_by_name($!g-i, $name),
       $raw,
@@ -959,7 +995,7 @@ class GIMP::Image {
     );
   }
 
-  method get_vectors_by_tattoo (Int() $tattoo, :$raw = False) {
+  method get_vectors_by_tattoo (Int() $tattoo, :$raw = False) is also<get-vectors-by-tattoo> {
     my guint $t = $tattoo;
 
     propReturnObject(
@@ -969,11 +1005,11 @@ class GIMP::Image {
     );
   }
 
-  method get_width {
+  method get_width is also<get-width> {
     gimp_image_get_width($!g-i);
   }
 
-  method get_xcf_file ( :$raw = False ) {
+  method get_xcf_file ( :$raw = False ) is also<get-xcf-file> {
     propReturnObject(
       gimp_image_get_xcf_file($!g-i),
       $raw,
@@ -981,7 +1017,7 @@ class GIMP::Image {
     );
   }
 
-  method get_images ( :$raw = False ) {
+  method get_images ( :$raw = False ) is also<get-images> {
     my $ia = CArrayToArray( gimp_get_images($!g-i) );
     return $ia if $raw;
     CArrayToArray($ia).map({ ::?CLASS.new($_) });
@@ -989,6 +1025,8 @@ class GIMP::Image {
 
   method list_images ( :$raw = False, :gslist(:$glist) = False )
     is static
+  
+    is also<list-images>
   {
     returnGList(
       gimp_list_images(),
@@ -998,11 +1036,12 @@ class GIMP::Image {
     );
   }
 
-  method id_is_valid {
+  method id_is_valid is also<id-is-valid> {
     so gimp_image_id_is_valid($!g-i);
   }
 
   proto method insert_channel (|)
+    is also<insert-channel>
   { * }
 
   multi method insert_channel (
@@ -1023,6 +1062,7 @@ class GIMP::Image {
   }
 
   proto method insert_layer (|)
+    is also<insert-layer>
   { * }
 
   multi method insert_layer (
@@ -1043,6 +1083,7 @@ class GIMP::Image {
   }
 
   proto method insert_vectors (|)
+    is also<insert-vectors>
   { * }
 
   multi method insert_vectors (
@@ -1062,15 +1103,15 @@ class GIMP::Image {
     gimp_image_insert_vectors($!g-i, $vectors, $parent, $p);
   }
 
-  method is_dirty {
+  method is_dirty is also<is-dirty> {
     so gimp_image_is_dirty($!g-i);
   }
 
-  method is_valid {
+  method is_valid is also<is-valid> {
     so gimp_image_is_valid($!g-i);
   }
 
-  method list_channels ( :$raw = False, :$glist = False ) {
+  method list_channels ( :$raw = False, :$glist = False ) is also<list-channels> {
     returnGList(
       gimp_image_list_channels($!g-i),
       $raw,
@@ -1079,7 +1120,7 @@ class GIMP::Image {
     );
   }
 
-  method list_layers ( :$raw = False, :$glist = False ) {
+  method list_layers ( :$raw = False, :$glist = False ) is also<list-layers> {
     returnGList(
       gimp_image_list_layers($!g-i),
       $raw,
@@ -1088,7 +1129,7 @@ class GIMP::Image {
     );
   }
 
-  method list_selected_channels ( :$raw = False, :$glist = False ) {
+  method list_selected_channels ( :$raw = False, :$glist = False ) is also<list-selected-channels> {
     returnGList(
       gimp_image_list_selected_channels($!g-i),
       $raw,
@@ -1097,7 +1138,7 @@ class GIMP::Image {
     );
   }
 
-  method list_selected_drawables ( :$raw = False, :$glist = False ) {
+  method list_selected_drawables ( :$raw = False, :$glist = False ) is also<list-selected-drawables> {
     returnGList(
       gimp_image_list_selected_drawables($!g-i),
       $raw,
@@ -1106,7 +1147,7 @@ class GIMP::Image {
     );
   }
 
-  method list_selected_layers ( :$raw = False, :$glist = False ) {
+  method list_selected_layers ( :$raw = False, :$glist = False ) is also<list-selected-layers> {
     returnGList(
       gimp_image_list_selected_layers($!g-i),
       $raw,
@@ -1115,7 +1156,7 @@ class GIMP::Image {
     );
   }
 
-  method list_selected_vectors ( :$raw = False, :$glist = False ) {
+  method list_selected_vectors ( :$raw = False, :$glist = False ) is also<list-selected-vectors> {
     returnGList(
       gimp_image_list_selected_vectors($!g-i),
       $raw,
@@ -1124,7 +1165,7 @@ class GIMP::Image {
     );
   }
 
-  method list_vectors ( :$raw = False, :$glist = False ) {
+  method list_vectors ( :$raw = False, :$glist = False ) is also<list-vectors> {
     returnGList(
       gimp_image_list_vectors($!g-i),
       $raw,
@@ -1133,34 +1174,37 @@ class GIMP::Image {
     );
   }
 
-  method lower_item (GimpItem() $item) {
+  method lower_item (GimpItem() $item) is also<lower-item> {
     gimp_image_lower_item($!g-i, $item);
   }
 
-  method lower_item_to_bottom (GimpItem() $item) {
+  method lower_item_to_bottom (GimpItem() $item) is also<lower-item-to-bottom> {
     gimp_image_lower_item_to_bottom($!g-i, $item);
   }
 
   method merge_down (
     GimpLayer() $merge_layer,
     Int()       $merge_type
-  ) {
+  ) 
+    is also<merge-down>
+  {
     my GimpMergeType $m = $merge_type;
 
     gimp_image_merge_down($!g-i, $merge_layer, $m);
   }
 
-  method merge_layer_group (GimpLayer() $layer_group) {
+  method merge_layer_group (GimpLayer() $layer_group) is also<merge-layer-group> {
     gimp_image_merge_layer_group($!g-i, $layer_group);
   }
 
-  method merge_visible_layers (Int() $merge_type) {
+  method merge_visible_layers (Int() $merge_type) is also<merge-visible-layers> {
     my GimpMergeType $m = $merge_type;
 
     gimp_image_merge_visible_layers($!g-i, $m);
   }
 
   proto method pick_color (|)
+    is also<pick-color>
   { * }
 
   multi method pick_color (
@@ -1214,41 +1258,41 @@ class GIMP::Image {
     );
   }
 
-  method pick_correlate_layer (Int() $x, Int() $y) {
+  method pick_correlate_layer (Int() $x, Int() $y) is also<pick-correlate-layer> {
     my gint ($xx, $yy) = ($x, $y);
 
     gimp_image_pick_correlate_layer($!g-i, $xx, $yy);
   }
 
-  method policy_color_profile (Int() $interactive) {
+  method policy_color_profile (Int() $interactive) is also<policy-color-profile> {
     my gboolean  $i = $interactive.so.Int;
 
     gimp_image_policy_color_profile($!g-i, $i);
   }
 
-  method policy_rotate (Int() $interactive) {
+  method policy_rotate (Int() $interactive) is also<policy-rotate> {
     my gboolean  $i = $interactive.so.Int;
 
     gimp_image_policy_rotate($!g-i, $i);
   }
 
-  method raise_item (GimpItem() $item) {
+  method raise_item (GimpItem() $item) is also<raise-item> {
     gimp_image_raise_item($!g-i, $item);
   }
 
-  method raise_item_to_top (GimpItem() $item) {
+  method raise_item_to_top (GimpItem() $item) is also<raise-item-to-top> {
     gimp_image_raise_item_to_top($!g-i, $item);
   }
 
-  method remove_channel (GimpChannel() $channel) {
+  method remove_channel (GimpChannel() $channel) is also<remove-channel> {
     gimp_image_remove_channel($!g-i, $channel);
   }
 
-  method remove_layer (GimpLayer() $layer) {
+  method remove_layer (GimpLayer() $layer) is also<remove-layer> {
     gimp_image_remove_layer($!g-i, $layer);
   }
 
-  method remove_vectors (GimpVectors() $vectors) {
+  method remove_vectors (GimpVectors() $vectors) is also<remove-vectors> {
     gimp_image_remove_vectors($!g-i, $vectors);
   }
 
@@ -1256,7 +1300,9 @@ class GIMP::Image {
     GimpItem()  $item,
     GimpItem()  $parent,
     Int()       $position
-  ) {
+  ) 
+    is also<reorder-item>
+  {
     my gint $p = $position;
 
     gimp_image_reorder_item($!g-i, $item, $parent, $p);
@@ -1273,7 +1319,7 @@ class GIMP::Image {
     gimp_image_resize($!g-i, $w, $h, $x, $y);
   }
 
-  method resize_to_layers {
+  method resize_to_layers is also<resize-to-layers> {
     gimp_image_resize_to_layers($!g-i);
   }
 
@@ -1293,7 +1339,9 @@ class GIMP::Image {
     Int()          $operation,
     GimpDrawable() $drawable,
     GimpRGB()      $color
-  ) {
+  ) 
+    is also<select-color>
+  {
     my GimpChannelOps $o = $operation;
 
     so gimp_image_select_color($!g-i, $o, $drawable, $color);
@@ -1304,7 +1352,9 @@ class GIMP::Image {
     GimpDrawable() $drawable,
     Num()          $x,
     Num()          $y
-  ) {
+  ) 
+    is also<select-contiguous-color>
+  {
     my GimpChannelOps  $o        =  $operation;
     my gdouble        ($xx, $yy) = ($x, $y);
 
@@ -1317,7 +1367,9 @@ class GIMP::Image {
     Num()          $y,
     Num()          $width,
     Num()          $height
-  ) {
+  ) 
+    is also<select-ellipse>
+  {
     my gdouble        ($xx, $yy, $w, $h) = ($x, $y, $width, $height);
 
     gimp_image_select_ellipse($!g-i, $drawable, $xx, $yy, $w, $h);
@@ -1326,13 +1378,16 @@ class GIMP::Image {
   method select_item (
     Int()      $operation,
     GimpItem() $item
-  ) {
+  ) 
+    is also<select-item>
+  {
     my GimpChannelOps  $o =  $operation;
 
     gimp_image_select_item($!g-i, $operation, $item);
   }
 
   proto method select_polygon (|)
+    is also<select-polygon>
   { * }
 
   multi method select_polygon (
@@ -1354,6 +1409,7 @@ class GIMP::Image {
   }
 
   proto method select_rectangle (|)
+    is also<select-rectangle>
   { * }
 
   multi method select_rectangle (
@@ -1385,15 +1441,16 @@ class GIMP::Image {
     gimp_image_select_round_rectangle($!g-i, $o, $xx, $yy, $w, $h, $cx, $cy);
   }
 
-  method set_color_profile (GimpColorProfile() $profile) {
+  method set_color_profile (GimpColorProfile() $profile) is also<set-color-profile> {
     gimp_image_set_color_profile($!g-i, $profile);
   }
 
-  method set_color_profile_from_file (GFile() $file) {
+  method set_color_profile_from_file (GFile() $file) is also<set-color-profile-from-file> {
     gimp_image_set_color_profile_from_file($!g-i, $file);
   }
 
   proto method set_colormap (|)
+    is also<set-colormap>
   { * }
 
   multi method set_colormap (
@@ -1414,7 +1471,9 @@ class GIMP::Image {
   method set_component_active (
     Int() $component,
     Int() $active
-  ) {
+  ) 
+    is also<set-component-active>
+  {
     my GimpChannelType $c = $component;
     my gboolean        $a = $active.so.Int;
 
@@ -1424,28 +1483,31 @@ class GIMP::Image {
   method set_component_visible (
     Int() $component,
     Int() $visible
-  ) {
+  ) 
+    is also<set-component-visible>
+  {
     my GimpChannelType $c = $component;
     my gboolean        $v = $visible.so.Int;
 
     gimp_image_set_component_visible($!g-i, $component, $v);
   }
 
-  method set_file (GFile() $file) {
+  method set_file (GFile() $file) is also<set-file> {
     gimp_image_set_file($!g-i, $file);
   }
 
-  method set_metadata (GimpMetadata() $metadata) {
+  method set_metadata (GimpMetadata() $metadata) is also<set-metadata> {
     gimp_image_set_metadata($!g-i, $metadata);
   }
 
-  method set_resolution (Num() $xresolution, Num() $yresolution) {
+  method set_resolution (Num() $xresolution, Num() $yresolution) is also<set-resolution> {
     my gdouble ($x, $y)  = ($xresolution, $yresolution);
 
     so gimp_image_set_resolution($!g-i, $x, $y);
   }
 
   proto method set_selected_channels (|)
+    is also<set-selected-channels>
   { * }
 
   multi method set_selected_channels (@channels) {
@@ -1460,6 +1522,7 @@ class GIMP::Image {
   }
 
   proto method set_selected_layers (|)
+    is also<set-selected-layers>
   { * }
 
   multi method set_selected_layers (@layers) {
@@ -1474,6 +1537,7 @@ class GIMP::Image {
   }
 
   proto method set_selected_vectors (|)
+    is also<set-selected-vectors>
   { * }
 
   multi method set_selected_vectors (@vectors) {
@@ -1487,33 +1551,33 @@ class GIMP::Image {
     gimp_image_set_selected_vectors($!g-i, $num, $vectors);
   }
 
-  method set_simulation_bpc (Int() $bpc) {
+  method set_simulation_bpc (Int() $bpc) is also<set-simulation-bpc> {
     my gboolean $b = $bpc.so.Int;
 
     gimp_image_set_simulation_bpc($!g-i, $bpc);
   }
 
-  method set_simulation_intent (Int() $intent) {
+  method set_simulation_intent (Int() $intent) is also<set-simulation-intent> {
     my GimpColorRenderingIntent $i = $intent;
 
     gimp_image_set_simulation_intent($!g-i, $i);
   }
 
-  method set_simulation_profile (GimpColorProfile() $profile) {
+  method set_simulation_profile (GimpColorProfile() $profile) is also<set-simulation-profile> {
     gimp_image_set_simulation_profile($!g-i, $profile);
   }
 
-  method set_simulation_profile_from_file (GFile() $file) {
+  method set_simulation_profile_from_file (GFile() $file) is also<set-simulation-profile-from-file> {
     gimp_image_set_simulation_profile_from_file($!g-i, $file);
   }
 
-  method set_tattoo_state (Int() $tattoo_state) {
+  method set_tattoo_state (Int() $tattoo_state) is also<set-tattoo-state> {
     my guint $t = $tattoo_state;
 
     gimp_image_set_tattoo_state($!g-i, $t);
   }
 
-  method set_unit (GimpUnit() $unit) {
+  method set_unit (GimpUnit() $unit) is also<set-unit> {
     gimp_image_set_unit($!g-i, $unit);
   }
 
@@ -1521,7 +1585,9 @@ class GIMP::Image {
     GList()  $channels,
             :$raw       = False,
             :$glist     = False
-  ) {
+  ) 
+    is also<take-selected-channels>
+  {
     returnGList(
       gimp_image_take_selected_channels($!g-i, $channels),
       $raw,
@@ -1534,7 +1600,9 @@ class GIMP::Image {
     GList()  $layers,
             :$raw      = False,
             :$glist    = False
-  ) {
+  ) 
+    is also<take-selected-layers>
+  {
     returnGList(
       gimp_image_take_selected_layers($!g-i, $layers),
       $raw,
@@ -1547,7 +1615,9 @@ class GIMP::Image {
     GList()  $vectors,
             :$raw      = False,
             :$glist    = False
-  ) {
+  ) 
+    is also<take-selected-vectors>
+  {
     returnGList(
       gimp_image_take_selected_vectors($!g-i, $vectors),
       $raw,
@@ -1556,47 +1626,47 @@ class GIMP::Image {
     );
   }
 
-  method thaw_channels {
+  method thaw_channels is also<thaw-channels> {
     gimp_image_thaw_channels($!g-i);
   }
 
-  method thaw_layers {
+  method thaw_layers is also<thaw-layers> {
     gimp_image_thaw_layers($!g-i);
   }
 
-  method thaw_vectors {
+  method thaw_vectors is also<thaw-vectors> {
     gimp_image_thaw_vectors($!g-i);
   }
 
-  method undo_disable {
+  method undo_disable is also<undo-disable> {
     gimp_image_undo_disable($!g-i);
   }
 
-  method undo_enable {
+  method undo_enable is also<undo-enable> {
     gimp_image_undo_enable($!g-i);
   }
 
-  method undo_freeze {
+  method undo_freeze is also<undo-freeze> {
     gimp_image_undo_freeze($!g-i);
   }
 
-  method undo_group_end {
+  method undo_group_end is also<undo-group-end> {
     gimp_image_undo_group_end($!g-i);
   }
 
-  method undo_group_start {
+  method undo_group_start is also<undo-group-start> {
     gimp_image_undo_group_start($!g-i);
   }
 
-  method undo_is_enabled {
+  method undo_is_enabled is also<undo-is-enabled> {
     gimp_image_undo_is_enabled($!g-i);
   }
 
-  method undo_thaw {
+  method undo_thaw is also<undo-thaw> {
     gimp_image_undo_thaw($!g-i);
   }
 
-  method unset_active_channel {
+  method unset_active_channel is also<unset-active-channel> {
     gimp_image_unset_active_channel($!g-i);
   }
 

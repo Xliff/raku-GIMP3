@@ -1,5 +1,7 @@
 use v6.c;
 
+use Method::Also;
+
 use NativeCall;
 
 use GIMP::Raw::Types;
@@ -53,6 +55,7 @@ class GIMP::File {
   }
 
   proto method load_layer (|)
+    is also<load-layer>
   { * }
 
   multi method load_layer (
@@ -86,6 +89,7 @@ class GIMP::File {
   }
 
   proto method load_layers (|)
+    is also<load-layers>
   { * }
 
   multi method load_layers (
@@ -193,7 +197,7 @@ class GIMP::File {
     so gimp_file_save($m, $image, $n, $drawables, $file);
   }
 
-  method save_thumbnail (GimpImage() $image, GFile() $file) {
+  method save_thumbnail (GimpImage() $image, GFile() $file) is also<save-thumbnail> {
     so gimp_file_save_thumbnail($image, $file);
   }
 
