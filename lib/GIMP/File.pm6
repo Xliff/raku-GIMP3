@@ -8,15 +8,12 @@ use GIMP::Raw::Types;
 use GIMP::Raw::File;
 
 use GLib::Roles::StaticClass;
+use GIO::Roles::GFile;
 
 class GIMP::File {
   has GimpImage $!this is built;
 
-  method !resolveRunMode (
-    :i(:$interactive),
-    :n(:non_interactive(:non-interactive(:$noninteractive))),
-    :l(:last(:last_vals(:last-vals(:$lastvals))))
-  ) {
+  method !resolveRunMode ($interactive, $noninteractive, $lastvals) {
     X::GLib::InvalidArguments.new(
       message => "You must use ONE of the following arguments: {
                   '' }<interactive>, <noninteractive> or <last>"
@@ -30,10 +27,55 @@ class GIMP::File {
   }
 
   multi method load (
-    GFile()  $file,
-            :i(:$interactive),
-            :n(:non_interactive(:non-interactive(:$noninteractive))),
-            :l(:last(:last_vals(:last-vals(:$lastvals))))
+    $arg where * !~~ (GFile, Str).any,
+    :i(:$interactive),
+    :n(:non_interactive(:non-interactive(:$noninteractive))),
+    :l(:last(:last_vals(:last-vals(:$lastvals))))
+  ) {
+    given $arg -> $_ is copy {
+
+      when .^can('GFile').so {
+          say "GFILE!";
+          $_ .= GFile;
+          proceed
+      }
+
+      when $_ !~~ GFile && .^can('Str').so {
+          say "STR!";
+          $_ .= Str;
+          proceed
+      }
+
+      when GFile | Str {
+        samewith($_, :$interactive, :$noninteractive, :$lastvals)
+      }
+
+      default {
+        X::GLib::UnknownType.new(
+          message => "The { .^name } argument that is passed to .load must {
+                      '' } be a GFile or Str compatible object!"
+        ).throw;
+      }
+    }
+  }
+  multi method load (
+    Str  $filename,
+        :i(:$interactive),
+        :n(:non_interactive(:non-interactive(:$noninteractive))),
+        :l(:last(:last_vals(:last-vals(:$lastvals))))
+  ) {
+    samewith(
+       GIO::File.new($filename, :path),
+      :$interactive,
+      :$noninteractive,
+      :$lastvals
+    )
+  }
+  multi method load (
+    GFile  $file,
+          :i(:$interactive),
+          :n(:non_interactive(:non-interactive(:$noninteractive))),
+          :l(:last(:last_vals(:last-vals(:$lastvals))))
   ) {
     samewith(
       self!resolveRunMode($interactive, $noninteractive, $lastvals),
@@ -47,11 +89,11 @@ class GIMP::File {
   ) {
     my GimpRunMode $m = $run_mode;
 
-    propReturnObject(
-      gimp_file_load($m, $file),
-      $raw,
-      |GIMP::Image.getTypePair
-    );
+    my $gfl = gimp_file_load($m, $file);
+
+    say "GFL: { +$gfl.p }";
+
+    propReturnObject($gfl, $raw, |::('GIMP::Image').getTypePair);
   }
 
   proto method load_layer (|)

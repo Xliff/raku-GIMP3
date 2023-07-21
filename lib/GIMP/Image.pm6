@@ -309,8 +309,11 @@ class GIMP::Image {
 
   has Convert    $.convert;
   has Grid       $.grid;
-  has GIMP::File $.file;
+  has GIMP::File $!file;
   has Metadata   $.metadata;
+
+  multi method file (GIMP::Image:U: ) { GIMP::File }
+  multi method file (GIMP::Image:D: ) { $!file     }
 
   submethod BUILD ( :$gimp-image ) {
     self.setGimpImage($gimp-image) if $gimp-image
