@@ -1,5 +1,7 @@
 use v6.c;
 
+use Method::Also;
+
 use GLib::Raw::Traits;
 use GIMP::Raw::Types;
 use GIMP::Raw::UI::Ruler;
@@ -9,10 +11,55 @@ use GIMP::Unit;
 
 use GLib::Roles::Implementor;
 
+our subset GimpRulerAncestry is export of Mu
+  where GimpRuler | GtkWidgetAncestry;
+
 class GIMP::UI::Ruler is GTK::Widget {
   has GimpRuler $!g-r is implementor;
 
-  method new (Int() $orientation) {
+  submethod BUILD ( :$gimp-ruler ) {
+    self.setGimpRuler($gimp-ruler) if $gimp-ruler
+  }
+
+  method setGimpRuler (GimpRulerAncestry $_) {
+    my $to-parent;
+
+    $!g-r = do {
+      when GimpRuler {
+        $to-parent = cast(GtkWidget, $_);
+        $_;
+      }
+
+      default {
+        $to-parent = $_;
+        cast(GimpRuler, $_);
+      }
+    }
+    self.setGtkWidget($to-parent);
+  }
+
+  method GIMP::Raw::Structs::GimpRuler
+    is also<GimpRuler>
+  { $!g-r }
+
+  multi method new (
+     $gimp-ruler where * ~~ GimpRulerAncestry,
+
+    :$ref = True
+  ) {
+    return unless $gimp-ruler;
+
+    my $o = self.bless( :$gimp-ruler );
+    $o.ref if $ref;
+    $o;
+  }
+  multi method new ( :horizontal(:hr(:$h)) is required )  {
+    self.new(GTK_ORIENTATION_HORIZONTAL);
+  }
+  multi method new ( :vertical(:vr(:$v)) is required )  {
+    self.new(GTK_ORIENTATION_VERTICAL);
+  }
+  multi method new (Int() $orientation) {
     my GtkOrientation $o = $orientation;
 
     my $gimp-ruler = gimp_ruler_new($o);
@@ -36,7 +83,7 @@ class GIMP::UI::Ruler is GTK::Widget {
   }
 
   # Type: double
-  method max-size is rw  is g-property {
+  method max-size is rw  is g-property is also<max_size> {
     my $gv = GLib::Value.new( G_TYPE_DOUBLE );
     Proxy.new(
       FETCH => sub ($) {
@@ -99,15 +146,16 @@ class GIMP::UI::Ruler is GTK::Widget {
     );
   }
 
-  method add_track_widget (GtkWidget() $widget) {
+  method add_track_widget (GtkWidget() $widget) is also<add-track-widget> {
     gimp_ruler_add_track_widget($!g-r, $widget);
   }
 
-  method get_position {
+  method get_position is also<get-position> {
     gimp_ruler_get_position($!g-r);
   }
 
   proto method get_range (|)
+    is also<get-range>
   { * }
 
   multi method get_range {
@@ -124,13 +172,13 @@ class GIMP::UI::Ruler is GTK::Widget {
     ($lower, $upper, $max_size) = ($l, $u, $m);
   }
 
-  method get_type {
+  method get_type is also<get-type> {
     state ($n, $t);
 
     unstable_get_type( self.^name, &gimp_ruler_get_type, $n, $t );
   }
 
-  method get_unit ( :$raw = False ) {
+  method get_unit ( :$raw = False ) is also<get-unit> {
     propReturnObject(
       gimp_ruler_get_unit($!g-r),
       $raw,
@@ -138,23 +186,23 @@ class GIMP::UI::Ruler is GTK::Widget {
     );
   }
 
-  method remove_track_widget (GtkWidget() $widget) {
+  method remove_track_widget (GtkWidget() $widget) is also<remove-track-widget> {
     gimp_ruler_remove_track_widget($!g-r, $widget);
   }
 
-  method set_position (Num() $position) {
+  method set_position (Num() $position) is also<set-position> {
     my gdouble $p = $position;
 
     gimp_ruler_set_position($!g-r, $p);
   }
 
-  method set_range (Num() $lower, Num() $upper, Num() $max_size) {
+  method set_range (Num() $lower, Num() $upper, Num() $max_size) is also<set-range> {
     my gdouble ($l, $u, $m) = ($lower, $upper, $max_size);
 
     gimp_ruler_set_range($!g-r, $l, $u, $m);
   }
 
-  method set_unit (GimpUnit() $unit) {
+  method set_unit (GimpUnit() $unit) is also<set-unit> {
     gimp_ruler_set_unit($!g-r, $unit);
   }
 
