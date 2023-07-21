@@ -3,6 +3,8 @@ use v6.c;
 use NativeCall;
 
 use GLib::Raw::Definitions;
+use GLib::Raw::Enums;
+use GLib::Raw::Structs;
 use GIMP::Raw::Definitions;
 use GIMP::Raw::Enums;
 
