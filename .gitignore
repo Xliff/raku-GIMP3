@@ -16,7 +16,6 @@ scripts/.precomp/
 .touch/
 .idea/
 dead/
-examples/
 *.ipynb
 jupyter.log
 c-helpers/time
