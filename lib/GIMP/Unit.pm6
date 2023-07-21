@@ -1,7 +1,7 @@
 use v6.c;
 
-use GTK::Raw::Types;
-use GTK::Raw::Units;
+use GIMP::Raw::Types;
+use GIMP::Raw::Unit;
 
 # Registerable Enum
 
@@ -140,14 +140,14 @@ our role GIMP::Roles::ParamSpec::Unit {
     my gboolean ($p1, $p2) = ($allow_pixels, $allow_percent).map( *.so.Int );
 
     my GimpUnit    $d = $default_value;
-    my GParamFlags $f = $flag;
+    my GParamFlags $f = $flags;
 
     my $glib-paramspec = gimp_param_spec_unit(
       $name,
       $nick,
       $blurb,
       $p1,
-      $p,
+      $p2,
       $d,
       $f
     );
