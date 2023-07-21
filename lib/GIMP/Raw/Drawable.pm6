@@ -333,7 +333,7 @@ sub gimp_drawable_curves_explicit (
   GimpDrawable         $drawable,
   GimpHistogramChannel $channel,
   gint                 $num_values,
-  gdouble              $values      is rw
+  CArray[gdouble]      $values
 )
   returns uint32
   is      native(gimp)
@@ -344,7 +344,7 @@ sub gimp_drawable_curves_spline (
   GimpDrawable         $drawable,
   GimpHistogramChannel $channel,
   gint                 $num_points,
-  gdouble              $points      is rw
+  CArray[gdouble]      $points
 )
   returns uint32
   is      native(gimp)
@@ -533,6 +533,14 @@ sub gimp_drawable_edit_stroke_item (
 
 sub gimp_drawable_edit_stroke_selection (GimpDrawable $drawable)
   returns uint32
+  is      native(gimp)
+  is      export
+{ * }
+
+### Manual addition
+
+sub gimp_drawable_get_type
+  returns GType
   is      native(gimp)
   is      export
 { * }
