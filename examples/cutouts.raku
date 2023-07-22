@@ -2,10 +2,11 @@ use v6.c;
 
 use RandomColor;
 use Cairo;
-use GTK::Application;
 use GDK::Cairo;
+use GTK::Application;
+use GTK::Button;
 use GTK::DrawingArea;
-use GTK::Flowbox;
+use GTK::FlowBox;
 use GTK::Grid;
 use GDK::Pixbuf;
 use GDK::Rectangle;
@@ -14,23 +15,27 @@ use GTK::Statusbar;
 use GIMP::Raw::Types;
 use GIMP::UI::Ruler;
 
+constant COORDS      = 1;
+constant COLOR_BATCH = 20;
+constant DRAW_WIDTH  = 2;
+
 class ColoredRectangle {
   has $.c;
-  has $.r
+  has $.r;
 
   method draw ($c) {
-    $c.set_source_rgba($c.r, $c.b, $c.g, $c.a);
+    say "RGBA: { |self.c.rgbad }";
+
+    $c.line_width = DRAW_WIDTH;
+    $c.rgba( |self.c.rgbad );
     $c.move_to(self.r.x               , self.r.y);
     $c.line_to(self.r.x + self.r.width, self.r.y);
     $c.line_to(self.r.x + self.r.width, self.r.y + self.r.height);
-    $c.line_to(self.r.x               , self.r.y + self.r.height)
+    $c.line_to(self.r.x               , self.r.y + self.r.height);
     $c.line_to(self.r.x               , self.r.y);
     $c.stroke;
   }
 }
-
-constant COORDS      = 1;
-constant COLOR_BATCH = 20;
 
 sub MAIN ($filename) {
   die "Could not find image file at `$filename`!" unless $filename.IO.r;
@@ -47,7 +52,7 @@ sub MAIN ($filename) {
     my $bb    = GTK::Box.new-hbox(10);
     my $st    = GTK::Statusbar.new;
     my $pb    = GTK::Button.new-with-label('Submit');
-    my $fb    = GTK::Flowbox.new-vbox;
+    my $fb    = GTK::FlowBox.new-vbox;
 
     for ($hr, $vr, $hr).rotor( 2 => -1 ) {
       .head.add-track-widget($da);
@@ -58,12 +63,12 @@ sub MAIN ($filename) {
     $hr.set-size-request($x-max, 20);
     $vr.set-size-request(20, $y-max);
 
-    my $draw-axes;
+    my ($draw-axes, $button-down, @new-colors, @rectangles);
     $da.draw.tap( -> *@a {
       my $cr = Cairo::Context.new( @a[1] ) but GdkCairoContextAdditions;
       $cr.set_source_pixbuf($image);
       $cr.paint;
-      .draw for @rectangles;
+      .draw($cr) for @rectangles;
       if $draw-axes {
         my ($x, $y) = ($hr.position.Int, $vr.position.Int);
         $cr.operator = OPERATOR_XOR;
@@ -91,24 +96,27 @@ sub MAIN ($filename) {
       )
     );
 
-    my (@new-colors, @rectangles)
-    $da.button-down-event.tap( -> *@a {
+    $da.button-press-event.tap( -> *@a {
+      say "PRESS!";
       my $me = cast( GdkEventButton, @a[1] );
-      @new-colors = RandomColor.new( count => COLOR_BATCH )
-        unless @new-colors;
+      @new-colors = |RandomColor.new(
+        count  => COLOR_BATCH,
+        format => 'color'
+      ) unless @new-colors;
       @rectangles.push: ColoredRectangle.new(
         c => @new-colors.pop,
-        r => GDK::Rectangle.new(
+        r => GdkRectangle.new(
           x => $hr.position.Int,
           y => $vr.position.Int
         )
       );
-      $button.down = True;
+      @rectangles.gist.say;
+      $button-down = True;
       @a.tail.r = 1;
     });
 
     $da.button-release-event.tap( -> *@a {
-      $button.down = False;
+      $button-down = False;
       @a.tail.r = 1;
     });
 
@@ -127,8 +135,10 @@ sub MAIN ($filename) {
       my $me = cast( GdkEventMotion, @a[1] );
       ($hr.position, $vr.position) = ($me.x, $me.y);
       if $button-down {
-        ( .width, .height ) = ($me.x - .x, $me.y - .y)
-          given @rectangles.tail
+        ( .r.width, .r.height ) = (
+          ($me.x - .r.x).Int,
+          ($me.y - .r.y).Int
+        ) given @rectangles.tail
       }
       $st.pop(COORDS);
       $st.push(COORDS, "({ $me.x.Int }, { $me.y.Int })");
@@ -151,7 +161,7 @@ sub MAIN ($filename) {
         );
 
         @new-images.push: GTK::Image.new( @new-pixbufs.tail );
-        $fb.pack_start(@new-images.tail);.
+        $fb.pack_start(@new-images.tail);
       }
     });
 
