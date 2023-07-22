@@ -4,7 +4,6 @@ use RandomColor;
 use Cairo;
 use GDK::Cairo;
 use GTK::Application;
-use GTK::Button;
 use GTK::DrawingArea;
 use GTK::FlowBox;
 use GTK::Grid;
@@ -13,19 +12,20 @@ use GDK::Rectangle;
 use GTK::Statusbar;
 
 use GIMP::Raw::Types;
+
+use GDK::KeySyms;
+use GIMP::UI::Button;
 use GIMP::UI::Ruler;
 
 constant COORDS      = 1;
 constant COLOR_BATCH = 20;
-constant DRAW_WIDTH  = 2;
+constant DRAW_WIDTH  = 4;
 
 class ColoredRectangle {
   has $.c;
   has $.r;
 
   method draw ($c) {
-    say "RGBA: { |self.c.rgbad }";
-
     $c.line_width = DRAW_WIDTH;
     $c.rgba( |self.c.rgbad );
     $c.move_to(self.r.x               , self.r.y);
@@ -51,7 +51,7 @@ sub MAIN ($filename) {
     my $vr    = GIMP::UI::Ruler.new( :vr );
     my $bb    = GTK::Box.new-hbox(10);
     my $st    = GTK::Statusbar.new;
-    my $pb    = GTK::Button.new-with-label('Submit');
+    my $pb    = GIMP::Button.new-with-label('Submit');
     my $fb    = GTK::FlowBox.new-vbox;
 
     for ($hr, $vr, $hr).rotor( 2 => -1 ) {
@@ -66,6 +66,7 @@ sub MAIN ($filename) {
     my ($draw-axes, $button-down, @new-colors, @rectangles);
     $da.draw.tap( -> *@a {
       my $cr = Cairo::Context.new( @a[1] ) but GdkCairoContextAdditions;
+      $cr.operator = OPERATOR_SOURCE;
       $cr.set_source_pixbuf($image);
       $cr.paint;
       .draw($cr) for @rectangles;
@@ -89,15 +90,23 @@ sub MAIN ($filename) {
       [+|](
         GDK_BUTTON_PRESS_MASK,
         GDK_BUTTON_RELEASE_MASK,
-        GDK_KEY_PRESS_MASK,
         GDK_POINTER_MOTION_MASK,
         GDK_ENTER_NOTIFY_MASK,
         GDK_LEAVE_NOTIFY_MASK
       )
     );
+    $a.window.add-events( GDK_KEY_PRESS_MASK );
 
-    $da.button-press-event.tap( -> *@a {
-      say "PRESS!";
+    $a.window.key-press-event.tap( -> *@a {
+      my $e = cast( GdkEventKey, @a[1] );
+
+      given $e.key-enum {
+        when GDK_KEY_BackSpace { @rectangles.pop if +@rectangles; $da.redraw }
+      }
+      @a.tail.r = 1;
+    });
+
+    $da.button-press-event.tap( -> *@a {;
       my $me = cast( GdkEventButton, @a[1] );
       @new-colors = |RandomColor.new(
         count  => COLOR_BATCH,
@@ -166,7 +175,7 @@ sub MAIN ($filename) {
     });
 
     $bb.pack_start($pb);
-    $bb.pack_start($st, True, True);
+    $bb.pack_end($st, True, True);
 
     $grid.attach($hr, 1, 0);
     $grid.attach($vr, 0, 1);
