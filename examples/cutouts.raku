@@ -1,21 +1,39 @@
 use v6.c;
 
+use RandomColor;
 use Cairo;
-use GDK::Cairo;
-use GDK::Pixbuf;
 use GTK::Application;
-use GTK::Grid;
+use GDK::Cairo;
 use GTK::DrawingArea;
+use GTK::Flowbox;
+use GTK::Grid;
+use GDK::Pixbuf;
+use GDK::Rectangle;
 use GTK::Statusbar;
 
 use GIMP::Raw::Types;
 use GIMP::UI::Ruler;
 
+class ColoredRectangle {
+  has $.c;
+  has $.r
+
+  method draw ($c) {
+    $c.set_source_rgba($c.r, $c.b, $c.g, $c.a);
+    $c.move_to(self.r.x               , self.r.y);
+    $c.line_to(self.r.x + self.r.width, self.r.y);
+    $c.line_to(self.r.x + self.r.width, self.r.y + self.r.height);
+    $c.line_to(self.r.x               , self.r.y + self.r.height)
+    $c.line_to(self.r.x               , self.r.y);
+    $c.stroke;
+  }
+}
+
+constant COORDS      = 1;
+constant COLOR_BATCH = 20;
 
 sub MAIN ($filename) {
   die "Could not find image file at `$filename`!" unless $filename.IO.r;
-
-  constant COORDS = 1;
 
   my $a = GTK::Application.new( title => 'org.genex.gimp.ruler' );
 
@@ -26,7 +44,10 @@ sub MAIN ($filename) {
     my $da    = GTK::DrawingArea.new;
     my $hr    = GIMP::UI::Ruler.new( :hr );
     my $vr    = GIMP::UI::Ruler.new( :vr );
+    my $bb    = GTK::Box.new-hbox(10);
     my $st    = GTK::Statusbar.new;
+    my $pb    = GTK::Button.new-with-label('Submit');
+    my $fb    = GTK::Flowbox.new-vbox;
 
     for ($hr, $vr, $hr).rotor( 2 => -1 ) {
       .head.add-track-widget($da);
@@ -39,10 +60,10 @@ sub MAIN ($filename) {
 
     my $draw-axes;
     $da.draw.tap( -> *@a {
-      my $cr = Cairo::Context.new( @a[1] )
-        but GDK::Additions::Cairo::Context;
+      my $cr = Cairo::Context.new( @a[1] ) but GdkCairoContextAdditions;
       $cr.set_source_pixbuf($image);
       $cr.paint;
+      .draw for @rectangles;
       if $draw-axes {
         my ($x, $y) = ($hr.position.Int, $vr.position.Int);
         $cr.operator = OPERATOR_XOR;
@@ -69,33 +90,79 @@ sub MAIN ($filename) {
         GDK_LEAVE_NOTIFY_MASK
       )
     );
-    $da.button-press-event.tap( -> *@a {
+
+    my (@new-colors, @rectangles)
+    $da.button-down-event.tap( -> *@a {
       my $me = cast( GdkEventButton, @a[1] );
-      say "Clicked!";
+      @new-colors = RandomColor.new( count => COLOR_BATCH )
+        unless @new-colors;
+      @rectangles.push: ColoredRectangle.new(
+        c => @new-colors.pop,
+        r => GDK::Rectangle.new(
+          x => $hr.position.Int,
+          y => $vr.position.Int
+        )
+      );
+      $button.down = True;
       @a.tail.r = 1;
     });
+
+    $da.button-release-event.tap( -> *@a {
+      $button.down = False;
+      @a.tail.r = 1;
+    });
+
     $da.enter-notify-event.tap( -> *@a {
       $draw-axes = True;
       @a.tail.r = 1;
     });
+
     $da.leave-notify-event.tap( -> *@a {
       $draw-axes = False;
       $da.redraw;
       @a.tail.r = 1;
     });
+
     $da.motion-notify-event.tap( -> *@a {
       my $me = cast( GdkEventMotion, @a[1] );
       ($hr.position, $vr.position) = ($me.x, $me.y);
+      if $button-down {
+        ( .width, .height ) = ($me.x - .x, $me.y - .y)
+          given @rectangles.tail
+      }
       $st.pop(COORDS);
       $st.push(COORDS, "({ $me.x.Int }, { $me.y.Int })");
       $da.redraw;
       @a.tail.r = 1;
     });
 
+    my (@new-pixbufs, @new-images);
+    my  $rollNum = 1;
+    $pb.clicked.tap( -> *@a {
+      while $_ =  @rectangles.pop {
+        @new-pixbufs.push: $image.subpixbuf( |$_ );
+
+        # Save last pixbuf
+        @new-pixbufs.tail.save(
+          $*HOME.add('Pictures').add(
+            'CR.' ~ DateTime.now.yyyy-mm-dd('') ~ ".{ $rollNum++ }.png"
+          ).absolute,
+          'png'
+        );
+
+        @new-images.push: GTK::Image.new( @new-pixbufs.tail );
+        $fb.pack_start(@new-images.tail);.
+      }
+    });
+
+    $bb.pack_start($pb);
+    $bb.pack_start($st, True, True);
+
     $grid.attach($hr, 1, 0);
     $grid.attach($vr, 0, 1);
     $grid.attach($da, 1, 1);
-    $grid.attach($st, 1, 2);
+    $grid.attach($fb, 2, 1);
+    $grid.attach($bb, 1, 2);
 
     $a.window.add($grid);
     $a.window.show-all;
