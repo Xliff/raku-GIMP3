@@ -26,23 +26,53 @@ $a.activate.tap( -> *@a {
     .head.lower = 0;
   }
   # cw: Too many literals for comfort!
-  ($hr.upper, $vr.upper) = (640, 480);
+  my ($x-max, $y-max) = ($hr.upper, $vr.upper) = (640, 480);
   $hr.set-size-request(640, 20);
   $vr.set-size-request(20, 480);
 
+  my $draw-axes;
   $da.draw.tap( -> *@a {
     my $cr = Cairo::Context.new( @a[1] );
     $cr.rgb(1, 1, 1);
     $cr.paint;
+    if $draw-axes {
+      my ($x, $y) = ($hr.position.Int, $vr.position.Int);
+      $cr.operator = OPERATOR_XOR;
+      $cr.rgba(1, 1, 1, 0.20);
+      $cr.move_to($x, 0);
+      $cr.line_to($x, $y-max);
+      $cr.stroke;
+      $cr.move_to(0, $y);
+      $cr.line_to($x-max, $y);
+      $cr.stroke
+    }
     @a.tail.r = 1;
   });
 
   $da.queue-draw;
   $da.set-size-request(640,480);
-  $da.add-events(GDK_BUTTON_PRESS_MASK +| GDK_POINTER_MOTION_MASK);
+  $da.add-events(
+    [+|](
+      GDK_BUTTON_PRESS_MASK,
+      GDK_BUTTON_RELEASE_MASK,
+      GDK_KEY_PRESS_MASK,
+      GDK_POINTER_MOTION_MASK,
+      GDK_ENTER_NOTIFY_MASK,
+      GDK_LEAVE_NOTIFY_MASK
+    )
+  );
   $da.button-press-event.tap( -> *@a {
     my $me = cast( GdkEventButton, @a[1] );
     say "Clicked!";
+    @a.tail.r = 1;
+  });
+  $da.enter-notify-event.tap( -> *@a {
+    $draw-axes = True;
+    @a.tail.r = 1;
+  });
+  $da.leave-notify-event.tap( -> *@a {
+    $draw-axes = False;
+    $da.redraw;
     @a.tail.r = 1;
   });
   $da.motion-notify-event.tap( -> *@a {
@@ -50,6 +80,7 @@ $a.activate.tap( -> *@a {
     ($hr.position, $vr.position) = ($me.x, $me.y);
     $st.pop(COORDS);
     $st.push(COORDS, "({ $me.x.Int }, { $me.y.Int })");
+    $da.redraw;
     @a.tail.r = 1;
   });
 
