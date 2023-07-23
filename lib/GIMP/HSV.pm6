@@ -7,7 +7,7 @@ use NativeCall;
 use GIMP::Raw::Types;
 use GIMP::Raw::Colorspace;
 
-use GIMP::Roles::Implementor;
+use GLib::Roles::Implementor;
 
 # BOXED
 
@@ -41,14 +41,14 @@ class GIMP::HSV {
     $gimp-hsv ?? self.bless( :$gimp-hsv ) !! Nil;
   }
   multi method new (
-    :h(:$hue)
-    :s(:$saturation)
-    :v(:$value)
+    :h(:$hue),
+    :s(:$saturation),
+    :v(:$value),
     :a(:$alpha)
   ) {
     samewith($hue, $saturation, $value, $alpha);
   }
-  method new (Num() $h, Num() $s, Num() $v, Num() $a = 1e0) {
+  multi method new (Num() $h, Num() $s, Num() $v, Num() $a = 1e0) {
     my $gimp-hsv = GimpHSV.new;
 
     my $o = $gimp-hsv ?? self.bless( :$gimp-hsv ) !! Nil;
@@ -69,9 +69,9 @@ class GIMP::HSV {
   }
 
   multi method hsva_set (
-    :h(:$hue)        = self.hue
-    :s(:$saturation) = self.saturation
-    :v(:$value)      = self.value
+    :h(:$hue)        = self.hue,
+    :s(:$saturation) = self.saturation,
+    :v(:$value)      = self.value,
     :a(:$alpha)      = self.alpha
   ) {
     self.hsva_set($hue, $saturation, $value);
@@ -82,14 +82,14 @@ class GIMP::HSV {
     Num() $v,
     Num() $a
   ) {
-    my gdouble ($hh, $ss, $ll, $aa) = ($h, $s, $l, $a);
+    my gdouble ($hh, $ss, $vv, $aa) = ($h, $s, $v, $a);
 
-    gimp_hsva_set($!g-hsv, $hh, $ss, $ll, $aa);
+    gimp_hsva_set($!g-hsv, $hh, $ss, $vv, $aa);
   }
 
   multi method set (
-    :h(:$hue)        = self.hue
-    :s(:$saturation) = self.saturation
+    :h(:$hue)        = self.hue,
+    :s(:$saturation) = self.saturation,
     :v(:$value)      = self.value
   ) {
     self.set($hue, $saturation, $value);
@@ -99,22 +99,22 @@ class GIMP::HSV {
     Num() $s,
     Num() $v
   ) {
-    my gdouble ($hh, $ss, $ll) = ($h, $s, $l);
+    my gdouble ($hh, $ss, $vv) = ($h, $s, $v);
 
-    gimp_hsv_set($!g-hsv, $hh, $ss, $ll);
+    gimp_hsv_set($!g-hsv, $hh, $ss, $vv);
   }
 
   proto method to_rgb (|)
   { * }
 
-  method to_rgb ( :$raw = False ) {
+  multi method to_rgb ( :$raw = False ) {
     samewith( GimpRGB.new, :$raw );
   }
-  method to_rgb (GimpRGB() $rgb) {
+  multi method to_rgb (GimpRGB() $rgb, :$raw = False) {
     return Nil unless $rgb;
 
-    gimp_hsv_to_rgb($hsv, $rgb);
-    propReturnObject($rgb, $raw, ::('Gimp::RGB').getTypePair
+    gimp_hsv_to_rgb($!g-hsv, $rgb);
+    propReturnObject($rgb, $raw, ::('Gimp::RGB').getTypePair)
   }
 
 }

@@ -32,8 +32,8 @@ class GIMP::CMYK {
   { $!g-cmyk.to_rgb( :raw )        }
 
   method GIMP::Raw::Structs::GimpHSL
-  { $!g-cmyk.to_rgb.to_hsl( :raw   }
-  
+  { $!g-cmyk.to_rgb.to_hsl( :raw ) }
+
   method GIMP::Raw::Structs::GimpHSV
   { $!g-cmyk.to_rgb.to_hsv( :raw ) }
 
@@ -106,7 +106,7 @@ class GIMP::CMYK {
   proto method gimp_cmyka_set (|)
   { * }
 
-  method gimp_cmyka_set (
+  multi method gimp_cmyka_set (
     :$cyan    = self.cyan,
     :$magenta = self.magenta,
     :$yellow  = self.yellow,
@@ -115,7 +115,7 @@ class GIMP::CMYK {
   ) {
     samewith($cyan, $magenta, $yellow, $black, $alpha);
   }
-  method gimp_cmyka_set (
+  multi method gimp_cmyka_set (
     Num() $cyan,
     Num() $magenta,
     Num() $yellow,
@@ -163,8 +163,8 @@ class GIMP::CMYK {
     gimp_cmyk_set_uchar($!g-cmyk, $c, $m, $y, $k);
   }
 
-  method cmyk_to_rgb (GimpRGB() $rgb, :$raw = False) {
-    gimp_cmyk_to_rgb($cmyk, $rgb);
+  method to_rgb (GimpRGB() $rgb, :$raw = False) {
+    gimp_cmyk_to_rgb($!g-cmyk, $rgb);
     propReturnObject($rgb, $raw, ::('Gimp::RGB').getTypePair)
   }
 

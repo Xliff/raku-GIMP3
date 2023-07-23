@@ -1,7 +1,12 @@
 use v6.c;
 
+use NativeCall;
+
 use GLib::Raw::Definitions;
 use GIMP::Raw::Definitions;
+use GIMP::Raw::Structs;
+
+unit package GIMP::Raw::Colorspace;
 
 ### /usr/src/gimp/libgimpcolor/gimpcolorspace.h
 

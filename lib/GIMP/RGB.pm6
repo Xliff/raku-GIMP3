@@ -1,7 +1,12 @@
 use v6.c;
 
+use Method::Also;
+
+use NativeCall;
+
 use GIMP::Raw::Types;
 use GIMP::Raw::RGB;
+use GIMP::Raw::Colorspace;
 
 use GIMP::CMYK;
 use GIMP::HSV;
@@ -10,44 +15,56 @@ use GIMP::HSL;
 # BOXED
 
 class GIMP::RGB {
-  has GimpRGB $!g-rgb handles<
+  has GimpRGB $!g-rgb is built handles<
     red   r
     green g
     blue  b
     alpha a
   >;
 
-  has $!this;
+  multi method new (
+    :r(:$red)   = 0e0,
+    :g(:$green) = 0e0,
+    :b(:$blue)  = 0e0,
+    :a(:$alpha) = 1e0
+  ) {
+    my $gimp-rgb = GimpRGB.new($red, $green, $blue, $alpha);
+
+    $gimp-rgb ?? self.bless( :$gimp-rgb ) !! Nil;
+  }
 
   class RGBA {
+    has $!this is built;
 
     method add (GimpRGB() $rgba2) {
-      gimp_rgba_add($!g-rgb, $rgba2);
+      gimp_rgba_add($!this, $rgba2);
       $!this;
     }
 
     method distance (GimpRGB() $rgba2) {
-      gimp_rgba_distance($!g-rgb, $rgba2);
+      gimp_rgba_distance($!this, $rgba2);
     }
 
     proto method get_pixel (|)
+      is also<get-pixel>
     { * }
 
-    method get_pixel (Babl() $format) {
+    multi method get_pixel (Babl() $format) {
       my $b = CArray[uint8].allocate($format.bpp);
 
-      samewith( $format, cast(gpointer, $b) )
+      samewith( $format, cast(gpointer, $b) );
       $b;
     }
-    method get_pixel (Babl() $format, gpointer $pixel) {
-      gimp_rgba_get_pixel($!g-rgb, $format, $pixel);
+    multi method get_pixel (Babl() $format, gpointer $pixel) {
+      gimp_rgba_get_pixel($!this, $format, $pixel);
     }
 
     proto method get_uchar (|)
+      is also<get-uchar>
     { * }
 
     multi method get_uchar {
-      samewit($, $, $, $);
+      samewith($, $, $, $);
     }
     multi method get_uchar (
       $red   is rw,
@@ -57,36 +74,36 @@ class GIMP::RGB {
     ) {
       my uint8 ($r, $g, $b, $a) = 0 xx 4;
 
-      gimp_rgba_get_uchar($!g-rgb, $r, $g, $b, $a);
+      gimp_rgba_get_uchar($!this, $r, $g, $b, $a);
       ($red, $green, $blue, $alpha) = ($r, $g, $b, $a)
     }
 
-    method multiply (Num() $f) {
+    method multiply (Num() $factor) {
       my gdouble $f = $factor;
 
-      gimp_rgba_multiply($!g-rgb, $f);
+      gimp_rgba_multiply($!this, $f);
       $!this;
     }
 
-    method parse_css (
-      Str     $css,
-      gint    $len
-    ) {
-      gimp_rgba_parse_css($!g-rgb, $css, $len);
+    method parse_css (Str() $css, Int() $len = -1) is also<parse-css> {
+      my gint $l = $len;
+
+      gimp_rgba_parse_css($!this, $css, $l);
     }
 
     method set (Num() $red, Num() $green, Num() $blue, Num() $alpha) {
       my gdouble ($r, $g, $b, $a) = 0e0;
 
-      gimp_rgba_set($!g-rgb, $r, $g, $b, $a);
+      gimp_rgba_set($!this, $r, $g, $b, $a);
       ($red, $green, $blue, $alpha) = ($r, $g, $b, $a);
     }
 
 
     proto method set_pixel (|)
+      is also<set-pixel>
     { * }
 
-    method set_pixel (Babl() $format, $a) {
+    multi method set_pixel (Babl() $format, $a) {
       samewith(
         $format,
         do given $a {
@@ -103,14 +120,15 @@ class GIMP::RGB {
         }
       );
     }
-    method set_pixel (Babl() $format, gpointer $pixel) {
-      gimp_rgba_set_pixel($!g-rgb, $format, $pixel);
+    multi method set_pixel (Babl() $format, gpointer $pixel) {
+      gimp_rgba_set_pixel($!this, $format, $pixel);
     }
 
     proto method set_uchar (|)
+      is also<set-uchar>
     { * }
 
-    method set_uchar (
+    multi method set_uchar (
       Int() :r(:$red)   = self.red,
       Int() :g(:$green) = self.green,
       Int() :b(:$blue)  = self.blue,
@@ -118,21 +136,21 @@ class GIMP::RGB {
     ) {
       samewith($red, $green, $blue, $alpha);
     }
-    method set_uchar (
+    multi method set_uchar (
       Int() $red,
       Int() $green,
       Int() $blue,
       Int() $alpha
     ) {
-      gimp_rgba_set_uchar($!g-rgb, $red, $green, $blue, $alpha);
+      gimp_rgba_set_uchar($!this, $red, $green, $blue, $alpha);
     }
 
     method subtract (GimpRGB() $rgba) {
-      gimp_rgba_subtract($!g-rgb, $rgba2);
+      gimp_rgba_subtract($!this, $rgba);
     }
   }
 
-  has RGBA $!rgba .= new;
+  has RGBA $!rgba;
 
   submethod BUILD ( :$gimp-rgb ) {
     self.setGimpRGB($gimp-rgb) if $gimp-rgb;
@@ -142,8 +160,12 @@ class GIMP::RGB {
     return unless $_;
 
     $!g-rgb = $_;
-    $!this  = self;
+    $!rgba = RGBA.new( this => $!g-rgb );
   }
+
+  method GIMP::Raw::Structs::GimpRGB
+    is also<GimpRGB>
+  { $!g-rgb }
 
   method add (GimpRGB() $rgb2) {
     gimp_rgb_add($!g-rgb, $rgb2);
@@ -172,24 +194,26 @@ class GIMP::RGB {
   }
 
   proto method get_pixel (|)
+    is also<get-pixel>
   { * }
 
-  method get_pixel (Babl() $format) {
+  multi method get_pixel (Babl() $format) {
     my $a = CArray[uint8].allocate( $format.bpp );
     samewith( $format, cast(gpointer, $a) );
     $a;
   }
-  method get_pixel (Babl() $format, gpointer $pixel) {
+  multi method get_pixel (Babl() $format, gpointer $pixel) {
     gimp_rgb_get_pixel($!g-rgb, $format, $pixel);
   }
 
-  method get_type {
+  method get_type is also<get-type> {
     state ($n, $t);
 
     unstable_get_type( self.^name, &gimp_rgb_get_type, $n, $t );
   }
 
   proto method get_uchar (|)
+    is also<get-uchar>
   { * }
 
   multi method get_uchar {
@@ -203,6 +227,7 @@ class GIMP::RGB {
   }
 
   proto method list_names (|)
+    is also<list-names>
   { * }
 
   multi method list_names ( :$raw = False ) {
@@ -241,7 +266,7 @@ class GIMP::RGB {
     gimp_rgb_luminance($!g-rgb);
   }
 
-  method luminance_uchar {
+  method luminance_uchar is also<luminance-uchar> {
     gimp_rgb_luminance_uchar($!g-rgb);
   }
 
@@ -253,27 +278,28 @@ class GIMP::RGB {
     gimp_rgb_min($!g-rgb);
   }
 
-  method multiply (Num() $factor_
-  ) {
-    gimp_rgb_multiply($!g-rgb, $factor);
+  method multiply (Num() $factor) {
+    my gdouble $f = $factor;
+
+    gimp_rgb_multiply($!g-rgb, $f);
     self;
   }
 
-  method parse_css (Str() $css, Int() $len = -1) {
+  method parse_css (Str() $css, Int() $len = -1) is also<parse-css> {
     my gint $l = $len;
 
     my $rv = so gimp_rgb_parse_css($!g-rgb, $css, $l);
     $rv ?? self !! Nil
   }
 
-  method parse_hex (Str() $hex, Int() $len = -1) {
+  method parse_hex (Str() $hex, Int() $len = -1) is also<parse-hex> {
     my gint $l = $len;
 
     my $rv = so gimp_rgb_parse_hex($!g-rgb, $hex, $len);
     $rv ?? self !! Nil;
   }
 
-  method parse_name (Str() $name, Int() $len = -1) {
+  method parse_name (Str() $name, Int() $len = -1) is also<parse-name> {
     my $rv = so gimp_rgb_parse_name($!g-rgb, $name, $len);
     $rv ?? self !! Nil;
   }
@@ -288,13 +314,14 @@ class GIMP::RGB {
     gimp_rgb_set($!g-rgb, $r, $g, $b);
   }
 
-  method set_alpha (Num() $alpha) {
+  method set_alpha (Num() $alpha) is also<set-alpha> {
     my gdouble $a = $alpha;
 
     gimp_rgb_set_alpha($!g-rgb, $a);
   }
 
   proto method set_pixel (|)
+    is also<set-pixel>
   { * }
 
   multi method set_pixel (Babl() $format, $a) {
@@ -304,7 +331,7 @@ class GIMP::RGB {
     ).throw unless $a.elems == $format.bpp;
 
     samewith(
-      $fomat,
+      $format,
       do given $a {
         when Array         { ArrayToCArray(uint8, $_); proceed }
         when CArray[uint8] { cast(gpointer, $_)                }
@@ -324,16 +351,17 @@ class GIMP::RGB {
   }
 
   proto method set_uchar (|)
+    is also<set-uchar>
   { * }
 
-  method set_uchar (
+  multi method set_uchar (
     Int() :r(:$red)   = self.red,
     Int() :g(:$green) = self.green,
     Int() :b(:$blue)  = self.blue
   ) {
     samewith($red, $green, $blue);
   }
-  method set_uchar (Int() $red, Int() $green, Int() $blue) {
+  multi method set_uchar (Int() $red, Int() $green, Int() $blue) {
     my uint8 ($r, $g, $b) = ($red, $green, $blue);
 
     gimp_rgb_set_uchar($!g-rgb, $r, $g, $b);
@@ -344,7 +372,8 @@ class GIMP::RGB {
     self;
   }
 
-  proto method rgb_to_cmyk (|) {
+  proto method rgb_to_cmyk (|)
+    is also<rgb-to-cmyk>
   { * }
 
   multi method rgb_to_cmyk (Num() $pullout) {
@@ -355,11 +384,12 @@ class GIMP::RGB {
 
     my gdouble $p = $pullout;
 
-    gimp_rgb_to_cmyk($rgb, $pullout, $cmyk);
+    gimp_rgb_to_cmyk($!g-rgb, $pullout, $cmyk);
     propReturnObject( $cmyk, $raw, GIMP::CMYK.getTypePair )
   }
 
   proto method rgb_to_hsl (|)
+    is also<rgb-to-hsl>
   { * }
 
   multi method rgb_to_hsl {
@@ -368,21 +398,22 @@ class GIMP::RGB {
   multi method rgb_to_hsl (GimpHSL() $hsl, :$raw = False) {
     return Nil unless $hsl;
 
-    gimp_rgb_to_hsl($rgb, $hsl);
-    propReturnObject( $cmyk, $raw, GIMP::HSL.getTypePair )
+    gimp_rgb_to_hsl($!g-rgb, $hsl);
+    propReturnObject( $hsl, $raw, GIMP::HSL.getTypePair )
   }
 
   proto method rgb_to_hsv (|)
+    is also<rgb-to-hsv>
   { * }
 
-  multi method rgb_to_hsv {
-    samewith( GimpHSV.new );
+  multi method rgb_to_hsv ( :$raw = False ) {
+    samewith( GimpHSV.new, :$raw );
   }
-  method rgb_to_hsv (GimpHSV() $hsv, :$raw = False) {
+  multi method rgb_to_hsv (GimpHSV() $hsv, :$raw = False) {
     return Nil unless $hsv;
-    
-    gimp_rgb_to_hsv($rgb, $hsv);
-    propReturnObject( $cmyk, $raw, GIMP::HSV.getTypePair )
+
+    gimp_rgb_to_hsv($!g-rgb, $hsv);
+    propReturnObject( $hsv, $raw, GIMP::HSV.getTypePair )
   }
 
 }
@@ -391,7 +422,7 @@ role GIMP::Roles::ParamSpec::RGB {
 
   method GParamSpec { ... }
 
-  method rgb_get_type {
+  method rgb_get_type is also<rgb-get-type> {
     state ($n, $t);
 
     unstable_get_type( ::?ROLE.^name, &gimp_param_rgb_get_type, $n, $t );
@@ -410,7 +441,7 @@ role GIMP::Roles::ParamSpec::RGB {
     gimp_param_spec_rgb(self.GParamSpec, $nick, $blurb, $has_alpha, $default_value, $flags);
   }
 
-  method rgb_get_default (GimpRGB() $default_value, :$raw = False) {
+  method rgb_get_default (GimpRGB() $default_value, :$raw = False) is also<rgb-get-default> {
     propReturnObject(
       gimp_param_spec_rgb_get_default(self.GParamSpec, $default_value),
       $raw,
@@ -418,7 +449,7 @@ role GIMP::Roles::ParamSpec::RGB {
     );
   }
 
-  method rgb_has_alpha {
+  method rgb_has_alpha is also<rgb-has-alpha> {
     so gimp_param_spec_rgb_has_alpha(self.GParamSpec);
   }
 
@@ -429,16 +460,18 @@ role GIMP::Roles::Value {
   method GValue { ... }
 
   proto method get_gimp_rgb (|)
+    is also<get-gimp-rgb>
   { * }
 
   multi method get_gimp_rgb ( :$raw = False ) {
-    samewith(GimpRGB.new, :$raw);  }
+    samewith(GimpRGB.new, :$raw);
+  }
   multi method get_gimp_rgb (GimpRGB() $rgb, :$raw = False) {
-    gimp_value_get_rgb($!g-rgb, $rgb);
+    gimp_value_get_rgb(self.GValue, $rgb);
   }
 
-  method set_gimp_rgb (GimpRGB() $rgb) {
-    gimp_value_set_rgb($!g-rgb, $rgb);
+  method set_gimp_rgb (GimpRGB() $rgb) is also<set-gimp-rgb> {
+    gimp_value_set_rgb(self.GValue, $rgb);
   }
 
 }

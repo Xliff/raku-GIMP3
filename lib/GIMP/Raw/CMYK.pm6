@@ -4,6 +4,7 @@ use NativeCall;
 
 use GLib::Raw::Definitions;
 use GIMP::Raw::Definitions;
+use GIMP::Raw::Structs;
 
 unit package GIMP::Raw::CMYK;
 
