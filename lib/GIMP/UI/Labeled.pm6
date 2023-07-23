@@ -14,7 +14,7 @@ use GLib::Roles::Implementor;
 our subset GimpLabeledAncestry is export of Mu
   where GimpLabeled | GtkGridAncestry;
 
-class GIMP::Labeled is GTK::Grid {
+class GIMP::UI::Labeled is GTK::Grid {
   has GimpLabeled $!g-l is implementor;
 
   submethod BUILD ( :$gimp-labeled ) {
