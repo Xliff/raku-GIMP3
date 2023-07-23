@@ -15,7 +15,7 @@ use GLib::Roles::Implementor;
 our subset GimpLabelColorAncestry is export of Mu
   where GimpLabelColor | GimpLabeledAncestry;
 
-class GIMP::Label::Color is GIMP::UI::Labeled {
+class GIMP::UI::Label::Color is GIMP::UI::Labeled {
   has GimpLabelColor $!g-lc is implementor;
 
   submethod BUILD ( :$gimp-label-color ) {
@@ -54,7 +54,11 @@ class GIMP::Label::Color is GIMP::UI::Labeled {
     $o.ref if $ref;
     $o;
   }
-  multi method new (Str() $label, GimpRGB() $color, Int() $editable) {
+  multi method new (
+    Str()     $label,
+    GimpRGB() $color,
+    Int()     $editable = False
+  ) {
     my gboolean $e = $editable.so.Int;
 
     my $gimp-label-color = gimp_label_color_new($label, $color, $e);
