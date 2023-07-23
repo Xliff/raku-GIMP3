@@ -28,6 +28,8 @@ class GPParamDef         is repr<CPointer> does GLib::Roles::Pointers is export 
 class GimpImage          is repr<CPointer> does GLib::Roles::Pointers is export { }
 class GimpItem           is repr<CPointer> does GLib::Roles::Pointers is export { }
 class GimpMetadata       is repr<CPointer> does GLib::Roles::Pointers is export { }
+class GimpLabelColor     is repr<CPointer> does GLib::Roles::Pointers is export { }
+class GimpLabeled        is repr<CPointer> does GLib::Roles::Pointers is export { }
 class GimpLayer          is repr<CPointer> does GLib::Roles::Pointers is export { }
 class GimpDrawable       is repr<CPointer> does GLib::Roles::Pointers is export { }
 class GimpChannel        is repr<CPointer> does GLib::Roles::Pointers is export { }
