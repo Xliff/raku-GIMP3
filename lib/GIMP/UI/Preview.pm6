@@ -14,7 +14,7 @@ use GLib::Roles::Implementor;
 our subset GimpPreviewAncestry is export of Mu
   where GimpPreview | GtkBoxAncestry;
 
-class GIMP::Preview is GTK::Box {
+class GIMP::UI::Preview is GTK::Box {
   has GimpPreview $!g-p is implementor;
 
   submethod BUILD ( :$gimp-preview ) {
