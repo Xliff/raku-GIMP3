@@ -191,13 +191,17 @@ class GIMP::UI::ZoomModel {
 
 class GIMP::Zoom::Button is GTK::Button {
 
-  method new (GimpZoomModel() $model, Int() $zoom_type, Int() $icon_size) {
+  multi method new (
+    GimpZoomModel() $model,
+    Int()           $zoom_type, 
+    Int()           $icon_size
+  ) {
     my GimpZoomType $z = $zoom_type;
     my GtkIconSize  $i = $icon_size;
 
-    my $gimp-zoom-button = gimp_zoom_button_new($model, $z, $i);
+    my $button = gimp_zoom_button_new($model, $z, $i);
 
-    $gimp-zoom-button ?? self.bless( :$gimp-zoom-button ) !! Nil;
+    $button ?? self.bless( :$button ) !! Nil;
   }
 
 }
