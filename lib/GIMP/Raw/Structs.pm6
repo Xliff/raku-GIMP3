@@ -14,7 +14,7 @@ use GLib::Roles::Pointers;
 
 unit package GIMP::Raw::Structs;
 
-class GimpRGB is repr<CStruct> is export {
+class GimpRGB is repr<CStruct> does GLib::Roles::Pointers is export {
 	has gdouble $.r is rw;
 	has gdouble $.g is rw;
 	has gdouble $.b is rw;
@@ -53,7 +53,7 @@ INIT {
 	}
 }
 
-class GPConfig is repr<CStruct> is export {
+class GPConfig is repr<CStruct> does GLib::Roles::Pointers is export {
 	has guint32 $.tile_width           is rw;
 	has guint32 $.tile_height          is rw;
 	has gint32  $.shm_id               is rw;
@@ -82,61 +82,61 @@ class GPConfig is repr<CStruct> is export {
 	has GimpRGB $!check_custom_color2 ;
 }
 
-class GPParamArray is repr<CStruct> is export {
+class GPParamArray is repr<CStruct> does GLib::Roles::Pointers is export {
 	has guint32 $.size is rw;
 	has guint8  $.data is rw;
 }
 
-class GPParamDefBoolean is repr<CStruct> is export {
+class GPParamDefBoolean is repr<CStruct> does GLib::Roles::Pointers is export {
 	has gint32 $.default_val is rw;
 }
 
-class GPParamDefColor is repr<CStruct> is export {
+class GPParamDefColor is repr<CStruct> does GLib::Roles::Pointers is export {
 	has gint32  $.has_alpha   is rw;
 	has GimpRGB $!default_val;
 }
 
-class GPParamDefEnum is repr<CStruct> is export {
+class GPParamDefEnum is repr<CStruct> does GLib::Roles::Pointers is export {
 	has gint32 $.default_val is rw;
 }
 
-class GPParamDefFloat is repr<CStruct> is export {
+class GPParamDefFloat is repr<CStruct> does GLib::Roles::Pointers is export {
 	has gdouble $.min_val     is rw;
 	has gdouble $.max_val     is rw;
 	has gdouble $.default_val is rw;
 }
 
-class GPParamDefID is repr<CStruct> is export {
+class GPParamDefID is repr<CStruct> does GLib::Roles::Pointers is export {
 	has gint32 $.none_ok is rw;
 }
 
-class GPParamDefIDArray is repr<CStruct> is export {
+class GPParamDefIDArray is repr<CStruct> does GLib::Roles::Pointers is export {
 	has Str $!type_name;
 }
 
-class GPParamDefInt is repr<CStruct> is export {
+class GPParamDefInt is repr<CStruct> does GLib::Roles::Pointers is export {
 	has gint64 $.min_val     is rw;
 	has gint64 $.max_val     is rw;
 	has gint64 $.default_val is rw;
 }
 
-class GPParamDefString is repr<CStruct> is export {
+class GPParamDefString is repr<CStruct> does GLib::Roles::Pointers is export {
 	has Str $!default_val;
 }
 
-class GPParamDefUnit is repr<CStruct> is export {
+class GPParamDefUnit is repr<CStruct> does GLib::Roles::Pointers is export {
 	has gint32 $.allow_pixels  is rw;
 	has gint32 $.allow_percent is rw;
 	has gint32 $.default_val   is rw;
 }
 
-class GPParamIDArray is repr<CStruct> is export {
+class GPParamIDArray is repr<CStruct> does GLib::Roles::Pointers is export {
 	has Str     $!type_name;
 	has guint32 $.size      is rw;
 	has gint32  $.data      is rw;
 }
 
-class GPProcInstall is repr<CStruct> is export {
+class GPProcInstall is repr<CStruct> does GLib::Roles::Pointers is export {
 	has Str        $!name         ;
 	has guint32    $.type          is rw;
 	has guint32    $.n_params      is rw;
@@ -145,23 +145,23 @@ class GPProcInstall is repr<CStruct> is export {
 	has GPParamDef $!return_vals  ;
 }
 
-class GPProcReturn is repr<CStruct> is export {
+class GPProcReturn is repr<CStruct> does GLib::Roles::Pointers is export {
 	has Str     $!name    ;
 	has guint32 $.n_params is rw;
 	has GPParam $!params  ;
 }
 
-class GPProcRun is repr<CStruct> is export {
+class GPProcRun is repr<CStruct> does GLib::Roles::Pointers is export {
 	has Str     $!name    ;
 	has guint32 $.n_params is rw;
 	has GPParam $!params  ;
 }
 
-class GPProcUninstall is repr<CStruct> is export {
+class GPProcUninstall is repr<CStruct> does GLib::Roles::Pointers is export {
 	has Str $!name;
 }
 
-class GPTileData is repr<CStruct> is export {
+class GPTileData is repr<CStruct> does GLib::Roles::Pointers is export {
 	has gint32  $.drawable_id is rw;
 	has guint32 $.tile_num    is rw;
 	has guint32 $.shadow      is rw;
@@ -172,58 +172,58 @@ class GPTileData is repr<CStruct> is export {
 	has guchar  $!data       ;
 }
 
-class GPTileReq is repr<CStruct> is export {
+class GPTileReq is repr<CStruct> does GLib::Roles::Pointers is export {
 	has gint32  $.drawable_id is rw;
 	has guint32 $.tile_num    is rw;
 	has guint32 $.shadow      is rw;
 }
 
-class GimpArray is repr<CStruct> is export {
+class GimpArray is repr<CStruct> does GLib::Roles::Pointers is export {
 	has guint8   $.data        is rw;
 	has gsize    $!length     ;
 	has gboolean $!static_data;
 }
 
-class GimpPreview is repr<CStruct> is export {
+class GimpPreview is repr<CStruct> does GLib::Roles::Pointers is export {
 	HAS GtkBox   $!parent_instance;
 	has gpointer $!priv           ;
 }
 
-class GimpAspectPreview is repr<CStruct> is export {
+class GimpAspectPreview is repr<CStruct> does GLib::Roles::Pointers is export {
 	HAS GimpPreview $!parent_instance;
 	has gpointer    $!priv           ;
 }
 
-class GimpProcedure is repr<CStruct> is export {
+class GimpProcedure is repr<CStruct> does GLib::Roles::Pointers is export {
 	HAS GObject  $!parent_instance;
 	has gpointer $!priv           ;
 }
 
-class GimpBatchProcedure is repr<CStruct> is export {
+class GimpBatchProcedure is repr<CStruct> does GLib::Roles::Pointers is export {
 	HAS GimpProcedure $!parent_instance;
 	has gpointer      $!priv           ;
 }
 
-# class GimpBatchProcedureClass is repr<CStruct> is export {
+# class GimpBatchProcedureClass is repr<CStruct> does GLib::Roles::Pointers is export {
 # 	has GimpProcedureClass $!parent_class;
 # }
 
-class GimpBrowser is repr<CStruct> is export {
+class GimpBrowser is repr<CStruct> does GLib::Roles::Pointers is export {
 	HAS GtkPaned $!parent_instance;
 	has gpointer $!priv           ;
 }
 
-class GimpBusyBox is repr<CStruct> is export {
+class GimpBusyBox is repr<CStruct> does GLib::Roles::Pointers is export {
 	HAS GtkBox   $!parent_instance;
 	has gpointer $!priv           ;
 }
 
-class GimpButton is repr<CStruct> is export {
+class GimpButton is repr<CStruct> does GLib::Roles::Pointers is export {
 	HAS GtkButton $!parent_instance;
 	has gpointer  $!priv           ;
 }
 
-class GimpCMYK is repr<CStruct> is export {
+class GimpCMYK is repr<CStruct> does GLib::Roles::Pointers is export {
 	has gdouble $.c is rw;
 	has gdouble $.m is rw;
 	has gdouble $.y is rw;
@@ -231,52 +231,52 @@ class GimpCMYK is repr<CStruct> is export {
 	has gdouble $.a is rw;
 }
 
-class GimpCellRendererColor is repr<CStruct> is export {
+class GimpCellRendererColor is repr<CStruct> does GLib::Roles::Pointers is export {
 	HAS GtkCellRenderer $!parent_instance;
 	has gpointer        $!priv           ;
 }
 
-class GimpCellRendererToggle is repr<CStruct> is export {
+class GimpCellRendererToggle is repr<CStruct> does GLib::Roles::Pointers is export {
 	HAS GtkCellRendererToggle $!parent_instance;
 	has gpointer              $!priv           ;
 }
 
-class GimpChainButton is repr<CStruct> is export {
+class GimpChainButton is repr<CStruct> does GLib::Roles::Pointers is export {
 	HAS GtkGrid  $!parent_instance;
 	has gpointer $!priv           ;
 }
 
-class GimpColorArea is repr<CStruct> is export {
+class GimpColorArea is repr<CStruct> does GLib::Roles::Pointers is export {
 	HAS GtkDrawingArea $!parent_instance;
 	has gpointer       $!priv           ;
 }
 
-class GimpColorButton is repr<CStruct> is export {
+class GimpColorButton is repr<CStruct> does GLib::Roles::Pointers is export {
 	HAS GimpButton $!parent_instance;
 	has gpointer   $!priv           ;
 }
 
-class GimpColorConfig is repr<CStruct> is export {
+class GimpColorConfig is repr<CStruct> does GLib::Roles::Pointers is export {
 	HAS GObject  $!parent_instance;
 	has gpointer $!priv           ;
 }
 
-class GimpColorDisplay is repr<CStruct> is export {
+class GimpColorDisplay is repr<CStruct> does GLib::Roles::Pointers is export {
 	HAS GObject  $!parent_instance;
 	has gpointer $!priv           ;
 }
 
-class GimpColorDisplayStack is repr<CStruct> is export {
+class GimpColorDisplayStack is repr<CStruct> does GLib::Roles::Pointers is export {
 	HAS GObject  $!parent_instance;
 	has gpointer $!priv           ;
 }
 
-class GimpColorHexEntry is repr<CStruct> is export {
+class GimpColorHexEntry is repr<CStruct> does GLib::Roles::Pointers is export {
 	HAS GtkEntry $!parent_instance;
 	has gpointer $!priv           ;
 }
 
-class GimpHSV is repr<CStruct> is export {
+class GimpHSV is repr<CStruct> does GLib::Roles::Pointers is export {
 	has gdouble $.h is rw;
 	has gdouble $.s is rw;
 	has gdouble $.v is rw;
@@ -288,7 +288,7 @@ class GimpHSV is repr<CStruct> is export {
 	method alpha      is rw { $!a }
 }
 
-class GimpColorSelector is repr<CStruct> is export {
+class GimpColorSelector is repr<CStruct> does GLib::Roles::Pointers is export {
 	HAS GtkBox                   $!parent_instance  ;
 	has gpointer                 $!priv             ;
 	has gboolean                 $!toggles_visible  ;
@@ -299,102 +299,102 @@ class GimpColorSelector is repr<CStruct> is export {
 	has GimpColorSelectorChannel $!channel          ;
 }
 
-class GimpColorNotebook is repr<CStruct> is export {
+class GimpColorNotebook is repr<CStruct> does GLib::Roles::Pointers is export {
 	HAS GimpColorSelector $!parent_instance;
 	has gpointer          $!priv           ;
 }
 
-class GimpColorProfile is repr<CStruct> is export {
+class GimpColorProfile is repr<CStruct> does GLib::Roles::Pointers is export {
 	HAS GObject  $!parent_instance;
 	has gpointer $!priv           ;
 }
 
-class GimpColorProfileChooserDialog is repr<CStruct> is export {
+class GimpColorProfileChooserDialog is repr<CStruct> does GLib::Roles::Pointers is export {
 	HAS GtkFileChooserDialog $!parent_instance;
 	has gpointer             $!priv           ;
 }
 
-class GimpColorProfileComboBox is repr<CStruct> is export {
+class GimpColorProfileComboBox is repr<CStruct> does GLib::Roles::Pointers is export {
 	HAS GtkComboBox $!parent_instance;
 	has gpointer    $!priv           ;
 }
 
-class GimpColorProfileStore is repr<CStruct> is export {
+class GimpColorProfileStore is repr<CStruct> does GLib::Roles::Pointers is export {
 	HAS GtkListStore $!parent_instance;
 	has gpointer     $!priv           ;
 }
 
-class GimpColorProfileView is repr<CStruct> is export {
+class GimpColorProfileView is repr<CStruct> does GLib::Roles::Pointers is export {
 	HAS GtkTextView $!parent_instance;
 	has gpointer    $!priv           ;
 }
 
-class GimpColorScale is repr<CStruct> is export {
+class GimpColorScale is repr<CStruct> does GLib::Roles::Pointers is export {
 	HAS GtkScale $!parent_instance;
 	has gpointer $!priv           ;
 }
 
-class GimpColorSelection is repr<CStruct> is export {
+class GimpColorSelection is repr<CStruct> does GLib::Roles::Pointers is export {
 	HAS GtkBox   $!parent_instance;
 	has gpointer $!priv           ;
 }
 
-class GimpColorTransform is repr<CStruct> is export {
+class GimpColorTransform is repr<CStruct> does GLib::Roles::Pointers is export {
 	HAS GObject  $!parent_instance;
 	has gpointer $!priv           ;
 }
 
-class GimpController is repr<CStruct> is export {
+class GimpController is repr<CStruct> does GLib::Roles::Pointers is export {
 	HAS GObject  $!parent_instance;
 	has gpointer $!priv           ;
 	has Str      $!name           ;
 	has Str      $!state          ;
 }
 
-class GimpControllerEventAny is repr<CStruct> is export {
+class GimpControllerEventAny is repr<CStruct> does GLib::Roles::Pointers is export {
 	has GimpControllerEventType $!type    ;
 	has GimpController          $!source  ;
 	has gint                    $.event_id is rw;
 }
 
-class GimpControllerEventTrigger is repr<CStruct> is export {
+class GimpControllerEventTrigger is repr<CStruct> does GLib::Roles::Pointers is export {
 	has GimpControllerEventType $!type    ;
 	has GimpController          $!source  ;
 	has gint                    $.event_id is rw;
 }
 
-class GimpControllerEventValue is repr<CStruct> is export {
+class GimpControllerEventValue is repr<CStruct> does GLib::Roles::Pointers is export {
 	has GimpControllerEventType $!type    ;
 	has GimpController          $!source  ;
 	has gint                    $.event_id is rw;
 	has GValue                  $!value   ;
 }
 
-class GimpDialog is repr<CStruct> is export {
+class GimpDialog is repr<CStruct> does GLib::Roles::Pointers is export {
 	HAS GtkDialog $!parent_instance;
 	has gpointer  $!priv           ;
 }
 
-class GimpDisplay is repr<CStruct> is export {
+class GimpDisplay is repr<CStruct> does GLib::Roles::Pointers is export {
 	HAS GObject  $!parent_instance;
 	has gpointer $!priv           ;
 }
 
-class GimpScrolledPreview is repr<CStruct> is export {
+class GimpScrolledPreview is repr<CStruct> does GLib::Roles::Pointers is export {
 	HAS GimpPreview $!parent_instance;
 }
 
-class GimpDrawablePreview is repr<CStruct> is export {
+class GimpDrawablePreview is repr<CStruct> does GLib::Roles::Pointers is export {
 	HAS GimpScrolledPreview $!parent_instance;
 	has gpointer            $!priv           ;
 }
 
-class GimpEevlQuantity is repr<CStruct> is export {
+class GimpEevlQuantity is repr<CStruct> does GLib::Roles::Pointers is export {
 	has gdouble $.value     is rw;
 	has gint    $.dimension is rw;
 }
 
-class GimpEevlOptions is repr<CStruct> is export {
+class GimpEevlOptions is repr<CStruct> does GLib::Roles::Pointers is export {
 	has gpointer                 $!unit_resolver_proc; #= GimpEevlUnitResolverProc
 	has gpointer                 $!data              ;
 	has gboolean                 $!ratio_expressions ;
@@ -402,63 +402,63 @@ class GimpEevlOptions is repr<CStruct> is export {
 	has GimpEevlQuantity         $!ratio_quantity    ;
 }
 
-class GimpIntComboBox is repr<CStruct> is export {
+class GimpIntComboBox is repr<CStruct> does GLib::Roles::Pointers is export {
 	HAS GtkComboBox $!parent_instance;
 	has gpointer    $!priv           ;
 }
 
-class GimpEnumComboBox is repr<CStruct> is export {
+class GimpEnumComboBox is repr<CStruct> does GLib::Roles::Pointers is export {
 	HAS GimpIntComboBox $!parent_instance;
 	has gpointer        $!priv           ;
 }
 
-class GimpEnumDesc is repr<CStruct> is export {
+class GimpEnumDesc is repr<CStruct> does GLib::Roles::Pointers is export {
 	has gint $.value      is rw;
 	has Str  $!value_desc;
 	has Str  $!value_help;
 }
 
-class GimpEnumLabel is repr<CStruct> is export {
+class GimpEnumLabel is repr<CStruct> does GLib::Roles::Pointers is export {
 	HAS GtkLabel $!parent_instance;
 	has gpointer $!priv           ;
 }
 
-class GimpIntStore is repr<CStruct> is export {
+class GimpIntStore is repr<CStruct> does GLib::Roles::Pointers is export {
 	HAS GtkListStore $!parent_instance;
 	has gpointer     $!priv           ;
 }
 
-class GimpEnumStore is repr<CStruct> is export {
+class GimpEnumStore is repr<CStruct> does GLib::Roles::Pointers is export {
 	HAS GimpIntStore $!parent_instance;
 	has gpointer     $!priv           ;
 }
 
-class GimpFileEntry is repr<CStruct> is export {
+class GimpFileEntry is repr<CStruct> does GLib::Roles::Pointers is export {
 	HAS GtkBox   $!parent_instance;
 	has gpointer $!priv           ;
 }
 
-class GimpFileProcedure is repr<CStruct> is export {
+class GimpFileProcedure is repr<CStruct> does GLib::Roles::Pointers is export {
 	has GimpProcedure $!parent_instance;
 	has gpointer      $!priv           ;
 }
 
-# class GimpFileProcedureClass is repr<CStruct> is export {
+# class GimpFileProcedureClass is repr<CStruct> does GLib::Roles::Pointers is export {
 # 	has GimpProcedureClass $!parent_class;
 # }
 
-class GimpFlagsDesc is repr<CStruct> is export {
+class GimpFlagsDesc is repr<CStruct> does GLib::Roles::Pointers is export {
 	has guint $.value      is rw;
 	has Str   $!value_desc;
 	has Str   $!value_help;
 }
 
-class GimpFrame is repr<CStruct> is export {
+class GimpFrame is repr<CStruct> does GLib::Roles::Pointers is export {
 	HAS GtkFrame $!parent_instance;
 	has gpointer $!priv           ;
 }
 
-class GimpHSL is repr<CStruct> is export {
+class GimpHSL is repr<CStruct> does GLib::Roles::Pointers is export {
 	has gdouble $.h is rw;
 	has gdouble $.s is rw;
 	has gdouble $.l is rw;
@@ -470,45 +470,45 @@ class GimpHSL is repr<CStruct> is export {
 	method alpha      is rw { $!a }
 }
 
-class GimpHintBox is repr<CStruct> is export {
+class GimpHintBox is repr<CStruct> does GLib::Roles::Pointers is export {
 	HAS GtkBox   $!parent_instance;
 	has gpointer $!priv           ;
 }
 
-class GimpImageProcedure is repr<CStruct> is export {
+class GimpImageProcedure is repr<CStruct> does GLib::Roles::Pointers is export {
 	has GimpProcedure $!parent_instance;
 	has gpointer      $!priv           ;
 }
 
-# class GimpImageProcedureClass is repr<CStruct> is export {
+# class GimpImageProcedureClass is repr<CStruct> does GLib::Roles::Pointers is export {
 # 	has GimpProcedureClass $!parent_class;
 # }
 
-class GimpIntRadioFrame is repr<CStruct> is export {
+class GimpIntRadioFrame is repr<CStruct> does GLib::Roles::Pointers is export {
 	HAS GimpFrame $!parent_instance;
 }
 
 
-class GimpLoadProcedure is repr<CStruct> is export {
+class GimpLoadProcedure is repr<CStruct> does GLib::Roles::Pointers is export {
 	has GimpFileProcedure $!parent_instance;
 	has gpointer          $!priv           ;
 }
 
-# class GimpLoadProcedureClass is repr<CStruct> is export {
+# class GimpLoadProcedureClass is repr<CStruct> does GLib::Roles::Pointers is export {
 # 	has GimpFileProcedureClass $!parent_class;
 # }
 
-class GimpMemsizeEntry is repr<CStruct> is export {
+class GimpMemsizeEntry is repr<CStruct> does GLib::Roles::Pointers is export {
 	HAS GtkBox   $!parent_instance;
 	has gpointer $!priv           ;
 }
 
-class GimpModule is repr<CStruct> is export {
+class GimpModule is repr<CStruct> does GLib::Roles::Pointers is export {
 	has GTypeModule $!parent_instance;
 	has gpointer    $!priv           ;
 }
 
-class GimpModuleInfo is repr<CStruct> is export {
+class GimpModuleInfo is repr<CStruct> does GLib::Roles::Pointers is export {
 	has guint32 $.abi_version is rw;
 	has Str     $!purpose    ;
 	has Str     $!author     ;
@@ -517,146 +517,146 @@ class GimpModuleInfo is repr<CStruct> is export {
 	has Str     $!date       ;
 }
 
-class GimpNumberPairEntry is repr<CStruct> is export {
+class GimpNumberPairEntry is repr<CStruct> does GLib::Roles::Pointers is export {
 	HAS GtkEntry $!parent_instance;
 	has gpointer $!priv           ;
 }
 
-class GimpObjectArray is repr<CStruct> is export {
+class GimpObjectArray is repr<CStruct> does GLib::Roles::Pointers is export {
 	has GType    $!object_type;
 	has GObject  $!data       ;
 	has gsize    $!length     ;
 	has gboolean $!static_data;
 }
 
-class GimpOffsetArea is repr<CStruct> is export {
+class GimpOffsetArea is repr<CStruct> does GLib::Roles::Pointers is export {
 	HAS GtkDrawingArea $!parent_instance;
 	has gpointer       $!priv           ;
 }
 
-class GimpPDB is repr<CStruct> is export {
+class GimpPDB is repr<CStruct> does GLib::Roles::Pointers is export {
 	HAS GObject  $!parent_instance;
 	has gpointer $!priv           ;
 }
 
-class GimpPDBProcedure is repr<CStruct> is export {
+class GimpPDBProcedure is repr<CStruct> does GLib::Roles::Pointers is export {
 	has GimpProcedure $!parent_instance;
 	has gpointer      $!priv           ;
 }
 
-# class GimpPDBProcedureClass is repr<CStruct> is export {
+# class GimpPDBProcedureClass is repr<CStruct> does GLib::Roles::Pointers is export {
 # 	has GimpProcedureClass $!parent_class;
 # }
 
-class GimpPageSelector is repr<CStruct> is export {
+class GimpPageSelector is repr<CStruct> does GLib::Roles::Pointers is export {
 	has GtkBox   $!parent_instance;
 	has gpointer $!priv           ;
 }
 
-# class GimpParamSpecArray is repr<CStruct> is export {
+# class GimpParamSpecArray is repr<CStruct> does GLib::Roles::Pointers is export {
 # 	has GParamSpecBoxed $!parent_instance;
 # }
 #
-# class GimpParamSpecBrush is repr<CStruct> is export {
+# class GimpParamSpecBrush is repr<CStruct> does GLib::Roles::Pointers is export {
 # 	has GimpParamSpecResource $!parent_instance;
 # }
 #
-# class GimpParamSpecChannel is repr<CStruct> is export {
+# class GimpParamSpecChannel is repr<CStruct> does GLib::Roles::Pointers is export {
 # 	has GimpParamSpecDrawable $!parent_instance;
 # }
 #
-# class GimpParamSpecDisplay is repr<CStruct> is export {
+# class GimpParamSpecDisplay is repr<CStruct> does GLib::Roles::Pointers is export {
 # 	has GParamSpecObject $!parent_instance;
 # 	has gboolean         $!none_ok        ;
 # }
 #
-# class GimpParamSpecDrawable is repr<CStruct> is export {
+# class GimpParamSpecDrawable is repr<CStruct> does GLib::Roles::Pointers is export {
 # 	has GimpParamSpecItem $!parent_instance;
 # }
 #
-# class GimpParamSpecFloatArray is repr<CStruct> is export {
+# class GimpParamSpecFloatArray is repr<CStruct> does GLib::Roles::Pointers is export {
 # 	has GimpParamSpecArray $!parent_instance;
 # }
 #
-# class GimpParamSpecFont is repr<CStruct> is export {
+# class GimpParamSpecFont is repr<CStruct> does GLib::Roles::Pointers is export {
 # 	has GimpParamSpecResource $!parent_instance;
 # }
 #
-# class GimpParamSpecGradient is repr<CStruct> is export {
+# class GimpParamSpecGradient is repr<CStruct> does GLib::Roles::Pointers is export {
 # 	has GimpParamSpecResource $!parent_instance;
 # }
 #
-# class GimpParamSpecImage is repr<CStruct> is export {
+# class GimpParamSpecImage is repr<CStruct> does GLib::Roles::Pointers is export {
 # 	has GParamSpecObject $!parent_instance;
 # 	has gboolean         $!none_ok        ;
 # }
 #
-# class GimpParamSpecItem is repr<CStruct> is export {
+# class GimpParamSpecItem is repr<CStruct> does GLib::Roles::Pointers is export {
 # 	has GParamSpecObject $!parent_instance;
 # 	has gboolean         $!none_ok        ;
 # }
 #
-# class GimpParamSpecLayer is repr<CStruct> is export {
+# class GimpParamSpecLayer is repr<CStruct> does GLib::Roles::Pointers is export {
 # 	has GimpParamSpecDrawable $!parent_instance;
 # }
 #
-# class GimpParamSpecLayerMask is repr<CStruct> is export {
+# class GimpParamSpecLayerMask is repr<CStruct> does GLib::Roles::Pointers is export {
 # 	has GimpParamSpecChannel $!parent_instance;
 # }
 #
-# class GimpParamSpecObjectArray is repr<CStruct> is export {
+# class GimpParamSpecObjectArray is repr<CStruct> does GLib::Roles::Pointers is export {
 # 	has GParamSpecBoxed $!parent_instance;
 # 	has GType           $!object_type    ;
 # }
 #
-# class GimpParamSpecPalette is repr<CStruct> is export {
+# class GimpParamSpecPalette is repr<CStruct> does GLib::Roles::Pointers is export {
 # 	has GimpParamSpecResource $!parent_instance;
 # }
 #
-# class GimpParamSpecPattern is repr<CStruct> is export {
+# class GimpParamSpecPattern is repr<CStruct> does GLib::Roles::Pointers is export {
 # 	has GimpParamSpecResource $!parent_instance;
 # }
 #
-# class GimpParamSpecRGBArray is repr<CStruct> is export {
+# class GimpParamSpecRGBArray is repr<CStruct> does GLib::Roles::Pointers is export {
 # 	has GParamSpecBoxed $!parent_instance;
 # }
 #
-# class GimpParamSpecResource is repr<CStruct> is export {
+# class GimpParamSpecResource is repr<CStruct> does GLib::Roles::Pointers is export {
 # 	has GParamSpecObject $!parent_instance;
 # 	has gboolean         $!none_ok        ;
 # }
 #
-# class GimpParamSpecSelection is repr<CStruct> is export {
+# class GimpParamSpecSelection is repr<CStruct> does GLib::Roles::Pointers is export {
 # 	has GimpParamSpecChannel $!parent_instance;
 # }
 #
-# class GimpParamSpecTextLayer is repr<CStruct> is export {
+# class GimpParamSpecTextLayer is repr<CStruct> does GLib::Roles::Pointers is export {
 # 	has GimpParamSpecLayer $!parent_instance;
 # }
 #
-# class GimpParamSpecUnit is repr<CStruct> is export {
+# class GimpParamSpecUnit is repr<CStruct> does GLib::Roles::Pointers is export {
 # 	has GParamSpecInt $!parent_instance;
 # 	has gboolean      $!allow_percent  ;
 # }
 #
-# class GimpParamSpecValueArray is repr<CStruct> is export {
+# class GimpParamSpecValueArray is repr<CStruct> does GLib::Roles::Pointers is export {
 # 	has GParamSpec $!parent_instance ;
 # 	has GParamSpec $!element_spec    ;
 # 	has gint       $.fixed_n_elements is rw;
 # }
 #
-# class GimpParamSpecVectors is repr<CStruct> is export {
+# class GimpParamSpecVectors is repr<CStruct> does GLib::Roles::Pointers is export {
 # 	has GimpParamSpecItem $!parent_instance;
 # }
 
-class GimpParasite is repr<CStruct> is export {
+class GimpParasite is repr<CStruct> does GLib::Roles::Pointers is export {
 	has Str      $!name ;
 	has guint32  $.flags is rw;
 	has guint32  $.size  is rw;
 	has gpointer $!data ;
 }
 
-class GimpPathEditor is repr<CStruct> is export {
+class GimpPathEditor is repr<CStruct> does GLib::Roles::Pointers is export {
 	HAS GtkBox            $!parent_instance;
 	has gpointer          $!priv           ;
 	has GtkWidget         $!upper_hbox     ;
@@ -672,85 +672,85 @@ class GimpPathEditor is repr<CStruct> is export {
 	has gint              $.num_items       is rw;
 }
 
-class GimpPickButton is repr<CStruct> is export {
+class GimpPickButton is repr<CStruct> does GLib::Roles::Pointers is export {
 	HAS GtkButton $!parent_instance;
 	has gpointer  $!priv           ;
 }
 
-class GimpPickButtonPrivate is repr<CStruct> is export {
+class GimpPickButtonPrivate is repr<CStruct> does GLib::Roles::Pointers is export {
 	HAS GdkCursor $!cursor     ;
 	has GtkWidget $!grab_widget;
 }
 
-class GimpPlugIn is repr<CStruct> is export {
+class GimpPlugIn is repr<CStruct> does GLib::Roles::Pointers is export {
 	HAS GObject  $!parent_instance;
 	has gpointer $!priv           ;
 }
 
-class GimpPreviewArea is repr<CStruct> is export {
+class GimpPreviewArea is repr<CStruct> does GLib::Roles::Pointers is export {
 	HAS GtkDrawingArea $!parent_instance;
 	has gpointer       $!priv           ;
 }
 
-class GimpProcBrowserDialog is repr<CStruct> is export {
+class GimpProcBrowserDialog is repr<CStruct> does GLib::Roles::Pointers is export {
 	HAS GimpDialog $!parent_instance;
 	has gpointer   $!priv           ;
 }
 
-class GimpProcedureConfig is repr<CStruct> is export {
+class GimpProcedureConfig is repr<CStruct> does GLib::Roles::Pointers is export {
 	HAS GObject  $!parent_instance;
 	has gpointer $!priv           ;
 }
 
-class GimpProcedureDialog is repr<CStruct> is export {
+class GimpProcedureDialog is repr<CStruct> does GLib::Roles::Pointers is export {
 	HAS GimpDialog $!parent_instance;
 	has gpointer   $!priv           ;
 }
 
-class GimpProgressBar is repr<CStruct> is export {
+class GimpProgressBar is repr<CStruct> does GLib::Roles::Pointers is export {
 	HAS GtkProgressBar $!parent_instance  ;
 	has Str            $!progress_callback;
 	has gboolean       $!cancelable       ;
 }
 
-class GimpRuler is repr<CStruct> is export {
+class GimpRuler is repr<CStruct> does GLib::Roles::Pointers is export {
 	HAS GtkWidget $!parent_instance;
 	has gpointer  $!priv           ;
 }
 
-class GimpSaveProcedure is repr<CStruct> is export {
+class GimpSaveProcedure is repr<CStruct> does GLib::Roles::Pointers is export {
 	HAS GimpFileProcedure $!parent_instance;
 	has gpointer          $!priv           ;
 }
 
-# class GimpSaveProcedureClass is repr<CStruct> is export {
+# class GimpSaveProcedureClass is repr<CStruct> does GLib::Roles::Pointers is export {
 # 	has GimpFileProcedureClass $!parent_class;
 # }
 
-class GimpSaveProcedureDialog is repr<CStruct> is export {
+class GimpSaveProcedureDialog is repr<CStruct> does GLib::Roles::Pointers is export {
 	HAS GimpProcedureDialog $!parent_instance;
 	has gpointer            $!priv           ;
 }
 
-class GimpSizeEntry is repr<CStruct> is export {
+class GimpSizeEntry is repr<CStruct> does GLib::Roles::Pointers is export {
 	HAS GtkGrid  $!parent_instance;
 	has gpointer $!priv           ;
 }
 
-class GimpSpinButton is repr<CStruct> is export {
+class GimpSpinButton is repr<CStruct> does GLib::Roles::Pointers is export {
 	HAS GtkSpinButton $!parent_instance;
 	has gpointer      $!priv           ;
 }
 
-class GimpSpinScale is repr<CStruct> is export {
+class GimpSpinScale is repr<CStruct> does GLib::Roles::Pointers is export {
 	HAS GimpSpinButton $!parent_instance;
 }
 
-# class GimpSpinScaleClass is repr<CStruct> is export {
+# class GimpSpinScaleClass is repr<CStruct> does GLib::Roles::Pointers is export {
 # 	has GimpSpinButtonClass $!parent_class;
 # }
 
-class GimpStringComboBox is repr<CStruct> is export {
+class GimpStringComboBox is repr<CStruct> does GLib::Roles::Pointers is export {
 	HAS GtkComboBox $!parent_instance;
 	has gpointer    $!priv           ;
 }
@@ -800,45 +800,45 @@ class GimpThumbnail is repr<CStruct> does GLib::Roles::Pointers is export {
 	}
 }
 
-class GimpThumbnailProcedure is repr<CStruct> is export {
+class GimpThumbnailProcedure is repr<CStruct> does GLib::Roles::Pointers is export {
 	HAS GimpProcedure $!parent_instance;
 	has gpointer      $!priv           ;
 }
 
-# class GimpThumbnailProcedureClass is repr<CStruct> is export {
+# class GimpThumbnailProcedureClass is repr<CStruct> does GLib::Roles::Pointers is export {
 # 	has GimpProcedureClass $!parent_class;
 # }
 
-class GimpTileBackendPlugin is repr<CStruct> is export {
+class GimpTileBackendPlugin is repr<CStruct> does GLib::Roles::Pointers is export {
 	HAS GeglTileBackend $!parent_instance;
 	has gpointer        $!priv           ;
 }
 
-# class GimpTileBackendPluginClass is repr<CStruct> is export {
+# class GimpTileBackendPluginClass is repr<CStruct> does GLib::Roles::Pointers is export {
 # 	has GeglTileBackendClass $!parent_class;
 # }
 
-class GimpUnitComboBox is repr<CStruct> is export {
+class GimpUnitComboBox is repr<CStruct> does GLib::Roles::Pointers is export {
 	HAS GtkComboBox $!parent_instance;
 	has gpointer    $!priv           ;
 }
 
-class GimpUnitStore is repr<CStruct> is export {
+class GimpUnitStore is repr<CStruct> does GLib::Roles::Pointers is export {
 	HAS GObject  $!parent_instance;
 	has gpointer $!priv           ;
 }
 
-class GimpWireMessage is repr<CStruct> is export {
+class GimpWireMessage is repr<CStruct> does GLib::Roles::Pointers is export {
 	has guint32  $.type is rw;
 	has gpointer $!data;
 }
 
-class GimpZoomModel is repr<CStruct> is export {
+class GimpZoomModel is repr<CStruct> does GLib::Roles::Pointers is export {
 	HAS GObject  $!parent_instance;
 	has gpointer $!priv           ;
 }
 
-class GimpZoomPreview is repr<CStruct> is export {
+class GimpZoomPreview is repr<CStruct> does GLib::Roles::Pointers is export {
 	HAS GimpScrolledPreview $!parent_instance;
 	has gpointer            $!priv           ;
 }
