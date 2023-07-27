@@ -299,7 +299,7 @@ class GIMP::UI::Preview is GTK::Box {
           $dest_x is rw,
           $dest_y is rw
   ) {
-    my gint ($x, $y)   = ($src_x, $src_y);
+    my gint ($x,  $y)  = ($src_x, $src_y);
     my gint ($dx, $dy) =  0 xx 2;
 
     gimp_preview_transform($!g-p, $x, $y, $dx, $dy);
@@ -307,7 +307,7 @@ class GIMP::UI::Preview is GTK::Box {
   }
 
   multi method untransform (Int() $src_x, Int() $src_y) {
-    samewith($, $);
+    samewith($src_x, $src_y, $, $);
   }
   multi method untransform (
     Int() $src_x,
