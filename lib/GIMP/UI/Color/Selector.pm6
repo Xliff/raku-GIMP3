@@ -22,7 +22,7 @@ class GIMP::UI::Color::Selector is GTK::Box {
   }
 
   method setGimpColorSelector (GimpColorSelectorAncestry $_) {
-    
+
     my $to-parent;
 
     $!g-cs = do {
@@ -58,31 +58,30 @@ class GIMP::UI::Color::Selector is GTK::Box {
     $o;
   }
   multi method new (
-    $c is copy where * !~~ (GimpRGB, GimpHSV).any,
+           $c is copy where * !~~ (GimpRGB, GimpHSV).any,
 
-    Int()  $channel = GIMP_COLOR_SELECTOR_HUE,
-          :$type    = 0
+          :$type    is required,
+    Int() :$channel              = GIMP_COLOR_SELECTOR_HUE,
   ) {
     $c .= GimpHSV if $c.^can('GimpHSV');
     $c .= GimpRGB if $c.^can('GimpRGB');
-
 
     samewith($c, $channel, :$type);
   }
 
   multi method new (
-    GimpRGB  $rgb,
-    Int()    $channel = GIMP_COLOR_SELECTOR_HUE,
-            :$type    = $COLOR_NOTEBOOK_TYPE
+    Int()    $type,
+    GimpRGB  $rgb     = GimpRGB.new(0, 0, 0),
+    Int()    $channel = GIMP_COLOR_SELECTOR_HUE
   ) {
     my $hsv = GimpHSV.new;
     gimp_rgb_to_hsv($rgb, $hsv);
     samewith($type, $rgb, $hsv, $channel);
   }
   multi method new (
-    GimpHSV  $hsv,
+    Int()    $type,
+    GimpHSV  $hsv     = GimpHSV.new(0, 0, 0),
     Int()    $channel = GIMP_COLOR_SELECTOR_HUE,
-    Int()   :$type    = $COLOR_NOTEBOOK_TYPE
   ) {
     my $rgb = GimpRGB.new;
     gimp_hsv_to_rgb($hsv, $rgb);
