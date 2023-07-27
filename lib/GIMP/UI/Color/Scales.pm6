@@ -2,6 +2,7 @@ use v6.c;
 
 use Method::Also;
 
+use GLib::Raw::Traits;
 use GIMP::Raw::Types;
 
 use GIMP::UI::Color::Selector;
@@ -12,8 +13,8 @@ our subset GimpColorScalesAncestry is export of Mu
 class GIMP::UI::Color::Scales is GIMP::UI::Color::Selector {
   has GimpColorScales $!g-cscales is implementor;
 
-  submethod BUILD ( :$gimp-color-scaldes ) {
-    self.setGimpColorScales($gimp-color-scaldes) if $gimp-color-scaldes
+  submethod BUILD ( :$gimp-color-scales ) {
+    self.setGimpColorScales($gimp-color-scades) if $gimp-color-scaldes
   }
 
   method setGimpColorScales (GimpColorScalesAncestry $_) {
@@ -38,11 +39,11 @@ class GIMP::UI::Color::Scales is GIMP::UI::Color::Selector {
   { $!g-cscales }
 
   multi method new (
-     $gimp-color-scaldes where * ~~ GimpColorScalesAncestry,
+     $gimp-color-scales where * ~~ GimpColorScalesAncestry,
 
     :$ref = True
   ) {
-    return unless $gimp-color-scaldes;
+    return unless $gimp-color-scales;
 
     my $o = self.bless( :$gimp-color-scaldes );
     $o.ref if $ref;
@@ -52,7 +53,9 @@ class GIMP::UI::Color::Scales is GIMP::UI::Color::Selector {
     :$color   = GimpRGB.new(0, 0, 0),
     :$channel = GIMP_COLOR_SELECTOR_HUE
   ) {
-    samewith( self.get_type, $color, $channel );
+    my $gimp-color-scales = samewith( self.get_type, $color, $channel, :raw );
+
+    $gimp-color-scales ?? self.bless( :$gimp-color-scales ) !! Nil;
   }
 
   # Type: boolean
