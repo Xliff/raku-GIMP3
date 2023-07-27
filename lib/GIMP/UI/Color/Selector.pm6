@@ -5,6 +5,7 @@ use Method::Also;
 use GIMP::Raw::Types;
 use GIMP::Raw::Colorspace;
 use GIMP::Raw::UI::Color::Selector;
+use GIMP::Raw::UI::Color::Notebook;
 
 use GTK::Box;
 
@@ -13,15 +14,15 @@ use GLib::Roles::Implementor;
 our subset GimpColorSelectorAncestry is export of Mu
   where GimpColorSelector | GtkBoxAncestry;
 
-class GIMP::UI::Color::Selector {
+class GIMP::UI::Color::Selector is GTK::Box {
   has GimpColorSelector $!g-cs is implementor;
 
   submethod BUILD ( :$gimp-color-selector ) {
-    self.setGimpColorSelector($gimp-color-selector)
-      if $gimp-color-selector
+    self.setGimpColorSelector($gimp-color-selector) if $gimp-color-selector;
   }
 
   method setGimpColorSelector (GimpColorSelectorAncestry $_) {
+    
     my $to-parent;
 
     $!g-cs = do {
@@ -42,6 +43,9 @@ class GIMP::UI::Color::Selector {
     is also<GimpColorSelector>
   { $!g-cs }
 
+  proto method new (|)
+  { * }
+
   multi method new (
      $gimp-color-selector where * ~~ GimpColorSelectorAncestry,
 
@@ -56,28 +60,48 @@ class GIMP::UI::Color::Selector {
   multi method new (
     $c is copy where * !~~ (GimpRGB, GimpHSV).any,
 
-    Int() $channel
+    Int()  $channel = GIMP_COLOR_SELECTOR_HUE,
+          :$type    = 0
   ) {
     $c .= GimpHSV if $c.^can('GimpHSV');
     $c .= GimpRGB if $c.^can('GimpRGB');
 
-    samewith($c, $channel);
+
+    samewith($c, $channel, :$type);
   }
 
-  multi method new (GimpRGB $rgb, Int() $channel) {
+  multi method new (
+    GimpRGB  $rgb,
+    Int()    $channel = GIMP_COLOR_SELECTOR_HUE,
+            :$type    = $COLOR_NOTEBOOK_TYPE
+  ) {
     my $hsv = GimpHSV.new;
     gimp_rgb_to_hsv($rgb, $hsv);
-    samewith($rgb, $hsv, $channel);
+    samewith($type, $rgb, $hsv, $channel);
   }
-  multi method new (GimpHSV $hsv, Int() $channel) {
+  multi method new (
+    GimpHSV  $hsv,
+    Int()    $channel = GIMP_COLOR_SELECTOR_HUE,
+    Int()   :$type    = $COLOR_NOTEBOOK_TYPE
+  ) {
     my $rgb = GimpRGB.new;
     gimp_hsv_to_rgb($hsv, $rgb);
     samewith($rgb, $hsv, $channel);
   }
-  multi method new (GimpRGB() $rgb, GimpHSV() $hsv, Int() $channel) {
+  multi method new (
+    Int()     $selector-type,
+    GimpRGB() $rgb,
+    GimpHSV() $hsv,
+    Int()     $channel
+  ) {
+    my GType                    $t = $selector-type;
     my GimpColorSelectorChannel $c = $channel;
 
-    my $gimp-color-selector = gimp_color_selector_new($!g-cs, $rgb, $hsv, $c);
+    say "ST: { $t }";
+
+    my $gimp-color-selector = gimp_color_selector_new($t, $rgb, $hsv, $c);
+
+    say "GCS: { +$gimp-color-selector.p }";
 
     $gimp-color-selector ?? self.bless( :$gimp-color-selector ) !! Nil;
   }
