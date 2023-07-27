@@ -57,41 +57,54 @@ class GIMP::UI::Color::Selector is GTK::Box {
     $o.ref if $ref;
     $o;
   }
-  multi method new (
-           $c is copy where * !~~ (GimpRGB, GimpHSV).any,
 
-          :$type    is required,
-    Int() :$channel              = GIMP_COLOR_SELECTOR_HUE,
+  # cw: We've never really done :$raw on constructors... until now.
+  #     The flip on the usual is that the superclass is functioning
+  #     as a factory for all descendant classes, which means
+  #     descendants have to pass intialization values down to the
+  #     superclass and get a response... BEFORE self.bless is called
+  #     BY THE TYPE BEING CREATED!
+  #
+  #     Hence we use the existing :$raw mechanism to resolve the spaghetti.
+  multi method new (
+           $type,
+           $c       is copy where * !~~ (GimpRGB, GimpHSV).any,
+
+    Int()  $channel = GIMP_COLOR_SELECTOR_HUE,
+          :$raw     = False
   ) {
     $c .= GimpHSV if $c.^can('GimpHSV');
     $c .= GimpRGB if $c.^can('GimpRGB');
 
-    samewith($c, $channel, :$type);
+    samewith($type, $c, $channel, :$raw);
   }
 
   multi method new (
-    Int()    $type,
-    GimpRGB  $rgb     = GimpRGB.new(0, 0, 0),
-    Int()    $channel = GIMP_COLOR_SELECTOR_HUE
+    Int()     $type,
+    GimpRGB   $rgb     = GimpRGB.new(0, 0, 0),
+    Int()     $channel = GIMP_COLOR_SELECTOR_HUE,
+             :$raw     = False
   ) {
     my $hsv = GimpHSV.new;
     gimp_rgb_to_hsv($rgb, $hsv);
-    samewith($type, $rgb, $hsv, $channel);
+    samewith($type, $rgb, $hsv, $channel, :$raw);
   }
   multi method new (
-    Int()    $type,
-    GimpHSV  $hsv     = GimpHSV.new(0, 0, 0),
-    Int()    $channel = GIMP_COLOR_SELECTOR_HUE,
+    Int()     $type,
+    GimpHSV   $hsv     = GimpHSV.new(0, 0, 0),
+    Int()     $channel = GIMP_COLOR_SELECTOR_HUE,
+             :$raw     = False
   ) {
     my $rgb = GimpRGB.new;
     gimp_hsv_to_rgb($hsv, $rgb);
-    samewith($rgb, $hsv, $channel);
+    samewith($rgb, $hsv, $channel, :$raw);
   }
   multi method new (
-    Int()     $selector-type,
-    GimpRGB() $rgb,
-    GimpHSV() $hsv,
-    Int()     $channel
+    Int()      $selector-type,
+    GimpRGB()  $rgb,
+    GimpHSV()  $hsv,
+    Int()      $channel,
+              :$raw            = False
   ) {
     my GType                    $t = $selector-type;
     my GimpColorSelectorChannel $c = $channel;
@@ -101,6 +114,8 @@ class GIMP::UI::Color::Selector is GTK::Box {
     my $gimp-color-selector = gimp_color_selector_new($t, $rgb, $hsv, $c);
 
     say "GCS: { +$gimp-color-selector.p }";
+
+    return $gimp-color-selector if $raw;
 
     $gimp-color-selector ?? self.bless( :$gimp-color-selector ) !! Nil;
   }
