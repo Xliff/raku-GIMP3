@@ -1,11 +1,13 @@
 use v6.c;
 
 use Method::Also;
+use NativeCall;
 
+use GLib::Raw::Traits;
 use GIMP::Raw::Types;
 use GIMP::Raw::Color::Profile;
 
-use Babl;
+use BABL;
 
 use GLib::Roles::Implementor;
 use GLib::Roles::Object;
@@ -14,6 +16,8 @@ our subset GimpColorProfileAncestry is export of Mu
   where GimpColorProfile | GObject;
 
 class GIMP::Color::Profile {
+  also does GLib::Roles::Object;
+
   has GimpColorProfile $!g-cp is implementor;
 
   submethod BUILD ( :$gimp-color-profile ) {
@@ -38,7 +42,7 @@ class GIMP::Color::Profile {
     self!setObject($to-parent);
   }
 
-  method GIMP::::Raw::Definitions::GimpColorProfile
+  method GIMP::Raw::Structs::GimpColorProfile
   { $!g-cp }
 
   multi method new (
@@ -108,7 +112,10 @@ class GIMP::Color::Profile {
     $gimp-color-profile ?? self.bless( :$gimp-color-profile ) !! Nil;
   }
 
-  method new_from_lcms_profile (CArray[Pointer[GError]] $error = gerror)
+  method new_from_lcms_profile (
+    gpointer                $lcms_profile,
+    CArray[Pointer[GError]] $error         = gerror
+  )
     is also<new-from-lcms-profile>
   {
     clear_error;
@@ -152,7 +159,7 @@ class GIMP::Color::Profile {
   method new_srgb_trc_from_color_profile (GimpColorProfile() $profile)
     is also<new-srgb-trc-from-color-profile>
   {
-    my &c := gimp_color_profile_new_srgb_trc_from_color_profile;
+    my &c := &gimp_color_profile_new_srgb_trc_from_color_profile;
 
     my $gimp-color-profile = c($profile);
 
@@ -168,9 +175,10 @@ class GIMP::Color::Profile {
   }
 
   method get_format (
-    Babl()                  $format,
-    Int()                   $intent,
-    CArray[Pointer[GError]] $error    = gerror
+    Babl()                   $format,
+    Int()                    $intent,
+    CArray[Pointer[GError]]  $error   = gerror,
+                            :$raw     = False
   )
     is also<get-format>
   {
@@ -191,9 +199,9 @@ class GIMP::Color::Profile {
   { * }
 
   multi method get_icc_profile ( :$buf = False ) {
-    samewith($);
+    samewith($, :$buf);
   }
-  multi method get_icc_profile ($length is rw) {
+  multi method get_icc_profile ($length is rw, :$buf = False) {
     my gsize $l = 0;
 
     my $s = gimp_color_profile_get_icc_profile($!g-cp, $length);
@@ -215,13 +223,15 @@ class GIMP::Color::Profile {
   }
   multi method get_lcms_format (
     Babl()  $format,
-            $lcms_format is rw
-           :$raw               = False
-  ) {
+            $lcms_format is rw,
+           :$raw                = False
+  )
+    is static
+  {
     my guint32 $l = 0;
 
     my $f = propReturnObject(
-      gimp_color_profile_get_lcms_format($!g-cp, $l),
+      gimp_color_profile_get_lcms_format($format, $l),
       $raw,
       |Babl.getTypePair
     );
@@ -252,7 +262,7 @@ class GIMP::Color::Profile {
 
     clear_error;
     my $s = propReturnObject(
-      gimp_color_profile_get_space($!g-cp, $intent, $error).
+      gimp_color_profile_get_space($!g-cp, $intent, $error),
       $raw,
       |Babl.getTypePair
     );
@@ -276,7 +286,7 @@ class GIMP::Color::Profile {
 
   method is_equal ( GimpColorProfile() $profile2 ) is also<is-equal> {
     so gimp_color_profile_is_equal($!g-cp, $profile2);
-  }GimpColorRenderingIntent
+  }
 
   method is_gray is also<is-gray> {
     so gimp_color_profile_is_gray($!g-cp);
