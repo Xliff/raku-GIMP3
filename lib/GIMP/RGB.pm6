@@ -23,14 +23,23 @@ class GIMP::RGB {
   >;
 
   multi method new (
-    :r(:$red)   = 0e0,
-    :g(:$green) = 0e0,
-    :b(:$blue)  = 0e0,
-    :a(:$alpha) = 1e0
+    Num() :r(:$red)   = 0e0,
+    Num() :g(:$green) = 0e0,
+    Num() :b(:$blue)  = 0e0,
+    Num() :a(:$alpha) = 1e0
   ) {
     my $gimp-rgb = GimpRGB.new($red, $green, $blue, $alpha);
 
     $gimp-rgb ?? self.bless( :$gimp-rgb ) !! Nil;
+  }
+
+  multi method new (
+    Num() $red,
+    Num() $green,
+    Num() $blue,
+    Num() $alpha   = 1e0
+  ) {
+    samewith( :$red, :$green, :$blue, :$alpha );
   }
 
   class RGBA {
