@@ -1,10 +1,14 @@
 use v6.c;
 
+use NativeCall;
+
+use BABL;
+
 use GLib::Raw::Definitions;
 use GIO::Raw::Definitions;
-use Babl::Raw::Definitions;
 use GIMP::Raw::Definitions;
 use GIMP::Raw::Enums;
+use GIMP::Raw::Structs;
 
 unit package GIMP::Raw::Color::Profile;
 
@@ -137,7 +141,7 @@ sub gimp_color_profile_new_d50_gray_lab_trc
 { * }
 
 sub gimp_color_profile_new_d65_gray_linear
-  returns GimpColorPrGimpColorRenderingIntentofile
+  returns GimpColorProfile
   is      native(gimpcolor)
   is      export
 { * }
