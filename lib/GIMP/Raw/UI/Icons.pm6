@@ -4,6 +4,8 @@ use GIMP::Raw::Definitions;
 
 unit package GIMP::UI::Icons;
 
+### /usr/src/gimp/libgimpwidgets/gimpicons.h
+
 constant GIMP_ICON_ATTACH                                is export = 'gimp-attach';
 constant GIMP_ICON_DETACH                                is export = 'gimp-detach';
 constant GIMP_ICON_INVERT                                is export = 'gimp-invert';
