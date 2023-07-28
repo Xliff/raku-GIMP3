@@ -53,6 +53,18 @@ class GIMP::UI::PageSelector is GTK::Box {
     $o.ref if $ref;
     $o;
   }
+
+  proto method new (|)
+  { * }
+
+  multi method new (Array() $pages) {
+    my $o = ::?CLASS.new;
+    $o.n-pages = $pages.elems;
+    for $pages.kv -> $k, $v {
+      $o.set_page_label($k, $v);
+    }
+    $o
+  }
   multi method new {
     my $gimp-page-selector = gimp_page_selector_new();
 
