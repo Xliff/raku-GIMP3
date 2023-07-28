@@ -52,6 +52,27 @@ class GIMP::UI::NumberPairEntry is GTK::Entry {
     $o.ref if $ref;
     $o;
   }
+
+  proto method new (|)
+  { * }
+
+  multi method new (
+    Str()  :$separators            = 'x,:',
+    Int()  :$allow_simplification  = True,
+    Num()  :min(:$min_valid_value) = 0,
+    Num()  :max(:$max_valid_value) = 10000,
+    
+           *%a
+  ) {
+    my $o = samewith(
+      $separators,
+      $allow_simplification,
+      $min_valid_value,
+      $max_valid_value
+    );
+    $o.setAttributes(%a) if +%a;
+    $o;
+  }
   multi method new (
     Str()  $separators,
     Int()  $allow_simplification,
