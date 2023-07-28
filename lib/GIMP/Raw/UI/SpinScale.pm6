@@ -3,6 +3,7 @@ use v6.c;
 use NativeCall;
 
 use GLib::Raw::Definitions;
+use GTK::Raw::Definitions;
 use GIMP::Raw::Definitions;
 use GIMP::Raw::Enums;
 use GIMP::Raw::Structs;
@@ -56,7 +57,7 @@ sub gimp_spin_scale_new (
   Str           $label,
   gint          $digits
 )
-  returns GtkWidget
+  returns GimpSpinScale
   is      native(gimpwidgets)
   is      export
 { * }
