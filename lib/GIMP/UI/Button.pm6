@@ -9,7 +9,7 @@ use GTK::Button;
 our subset GimpButtonAncestry is export of Mu
   where GimpButton | GtkButtonAncestry;
 
-class GIMP::Button is GTK::Button {
+class GIMP::UI::Button is GTK::Button {
   has GimpButton $!g-b is implementor;
 
   submethod BUILD ( :$gimp-button ) {
