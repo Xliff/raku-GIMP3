@@ -40,6 +40,9 @@ class GIMP::UI::SpinScale is GIMP::UI::SpinButton {
     is also<GimpSpinScale>
   { $!g-ss }
 
+  proto method new (|)
+  { * }
+
   multi method new (
      $gimp-spin-scale where * ~~ GimpSpinScaleAncestry,
 
@@ -51,7 +54,16 @@ class GIMP::UI::SpinScale is GIMP::UI::SpinButton {
     $o.ref if $ref;
     $o;
   }
-
+  # cw: 3 is arbitrary, but just happens to be the maximum number of chars
+  #     for the default GTK::Adjustment value. Need a better way to
+  #     handle this.
+  multi method new (
+    GtkAdjustment() :$adjustment = GTK::Adjustment.new,
+    Str()           :$label      = 'Spinner',
+    Int()           :$digits     = 3
+  ) {
+    samewith($adjustment, $label, $digits);
+  }
   multi method new (
     GtkAdjustment() $adjustment,
     Str()           $label,
