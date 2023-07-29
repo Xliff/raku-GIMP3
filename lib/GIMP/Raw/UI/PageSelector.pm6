@@ -65,7 +65,7 @@ sub gimp_page_selector_get_type
 { * }
 
 sub gimp_page_selector_new
-  returns GtkWidget
+  returns GimpPageSelector
   is      native(gimpwidgets)
   is      export
 { * }
