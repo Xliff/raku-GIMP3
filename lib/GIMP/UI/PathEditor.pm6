@@ -53,7 +53,7 @@ class GIMP::UI::PathEditor is GTK::Box {
     $o;
   }
   multi method new (Str() $title, Str() $path) {
-    my $gimp-path-editor = gimp_path_editor_new($!g-pe, $path);
+    my $gimp-path-editor = gimp_path_editor_new($title, $path);
 
     $gimp-path-editor ?? self.bless( :$gimp-path-editor ) !! Nil;
   }
