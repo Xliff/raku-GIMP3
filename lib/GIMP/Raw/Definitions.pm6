@@ -26,6 +26,7 @@ constant GIMP_CHECK_LIGHT    is export = 0.6;
 
 class GPParam            is repr<CPointer> does GLib::Roles::Pointers is export { }
 class GPParamDef         is repr<CPointer> does GLib::Roles::Pointers is export { }
+class GimpColorManaged   is repr<CPointer> does GLib::Roles::Pointers is export { }
 class GimpColorScales    is repr<CPointer> does GLib::Roles::Pointers is export { }
 class GimpImage          is repr<CPointer> does GLib::Roles::Pointers is export { }
 class GimpItem           is repr<CPointer> does GLib::Roles::Pointers is export { }
