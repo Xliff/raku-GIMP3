@@ -24,17 +24,18 @@ constant GIMP_CHECK_SIZE_SM  is export =   4;
 constant GIMP_CHECK_DARK     is export = 0.4;
 constant GIMP_CHECK_LIGHT    is export = 0.6;
 
-class GPParam            is repr<CPointer> does GLib::Roles::Pointers is export { }
-class GPParamDef         is repr<CPointer> does GLib::Roles::Pointers is export { }
+class GimpChannel        is repr<CPointer> does GLib::Roles::Pointers is export { }
 class GimpColorManaged   is repr<CPointer> does GLib::Roles::Pointers is export { }
 class GimpColorScales    is repr<CPointer> does GLib::Roles::Pointers is export { }
+class GimpDrawable       is repr<CPointer> does GLib::Roles::Pointers is export { }
 class GimpImage          is repr<CPointer> does GLib::Roles::Pointers is export { }
 class GimpItem           is repr<CPointer> does GLib::Roles::Pointers is export { }
-class GimpMetadata       is repr<CPointer> does GLib::Roles::Pointers is export { }
 class GimpLabelColor     is repr<CPointer> does GLib::Roles::Pointers is export { }
+class GimpLabelEntry     is repr<CPointer> does GLib::Roles::Pointers is export { }
 class GimpLabeled        is repr<CPointer> does GLib::Roles::Pointers is export { }
 class GimpLayer          is repr<CPointer> does GLib::Roles::Pointers is export { }
-class GimpDrawable       is repr<CPointer> does GLib::Roles::Pointers is export { }
-class GimpChannel        is repr<CPointer> does GLib::Roles::Pointers is export { }
-class GimpVectors        is repr<CPointer> does GLib::Roles::Pointers is export { }
+class GimpMetadata       is repr<CPointer> does GLib::Roles::Pointers is export { }
 class GimpSelection      is repr<CPointer> does GLib::Roles::Pointers is export { }
+class GimpVectors        is repr<CPointer> does GLib::Roles::Pointers is export { }
+class GPParam            is repr<CPointer> does GLib::Roles::Pointers is export { }
+class GPParamDef         is repr<CPointer> does GLib::Roles::Pointers is export { }
