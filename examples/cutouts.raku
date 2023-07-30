@@ -7,6 +7,7 @@ use GTK::Application;
 use GTK::DrawingArea;
 use GTK::FlowBox;
 use GTK::Grid;
+use GTK::Image;
 use GDK::Pixbuf;
 use GDK::Rectangle;
 use GTK::Statusbar;
@@ -37,13 +38,32 @@ class ColoredRectangle {
   }
 }
 
+my ($rollNum, $image, @new-pixbufs, @new-images, $fb); = (1);
+
+sub saveRegion {
+  while $_ =  @rectangles.pop {
+    @new-pixbufs.push: $image.subpixbuf( |$_ );
+
+    # Save last pixbuf
+    @new-pixbufs.tail.save(
+      $*HOME.add('Pictures').add(
+        'CR.' ~ DateTime.now.yyyy-mm-dd('') ~ ".{ $rollNum++ }.png"
+      ).absolute,
+      'png'
+    );
+
+    @new-images.push: GTK::Image.new( @new-pixbufs.tail );
+    $fb.pack_start( @new-images.tail );
+  }
+}
+
 sub MAIN ($filename) {
   die "Could not find image file at `$filename`!" unless $filename.IO.r;
 
   my $a = GTK::Application.new( title => 'org.genex.gimp.ruler' );
 
   $a.activate.tap( -> *@a {
-    my $image = GDK::Pixbuf.new-from-file($filename);
+    $image = GDK::Pixbuf.new-from-file($filename);
 
     my $grid  = GTK::Grid.new;
     my $da    = GTK::DrawingArea.new;
@@ -52,7 +72,9 @@ sub MAIN ($filename) {
     my $bb    = GTK::Box.new-hbox(10);
     my $st    = GTK::Statusbar.new;
     my $pb    = GIMP::Button.new-with-label('Submit');
-    my $fb    = GTK::FlowBox.new-vbox;
+
+    # Initialize the film row (as a FlowBox)
+    $fb    = GTK::FlowBox.new-vbox;
 
     for ($hr, $vr, $hr).rotor( 2 => -1 ) {
       .head.add-track-widget($da);
@@ -155,23 +177,8 @@ sub MAIN ($filename) {
       @a.tail.r = 1;
     });
 
-    my (@new-pixbufs, @new-images);
-    my  $rollNum = 1;
     $pb.clicked.tap( -> *@a {
-      while $_ =  @rectangles.pop {
-        @new-pixbufs.push: $image.subpixbuf( |$_ );
-
-        # Save last pixbuf
-        @new-pixbufs.tail.save(
-          $*HOME.add('Pictures').add(
-            'CR.' ~ DateTime.now.yyyy-mm-dd('') ~ ".{ $rollNum++ }.png"
-          ).absolute,
-          'png'
-        );
-
-        @new-images.push: GTK::Image.new( @new-pixbufs.tail );
-        $fb.pack_start(@new-images.tail);
-      }
+      saveRegion;
     });
 
     $bb.pack_start($pb);
@@ -182,6 +189,52 @@ sub MAIN ($filename) {
     $grid.attach($da, 1, 1);
     $grid.attach($fb, 2, 1);
     $grid.attach($bb, 1, 2);
+
+    $a.window.key-press-event.tap( -> *@a ($, $e, $) {
+      my $event = cast(GdkEventKey, $e);
+
+      given $event.keyval {
+
+        # Read keys
+        #   - Left: Move box left
+        #     - With SHIFT shrink box width
+        #   - Right: Move box right
+        #     - With SHIFT increase box width
+        #   - Up: Move box up
+        #     - With SHIFT shrink box height
+        #   - Down: Move box down
+        #     - With SHIFT increase box height
+        #   - Home: Move to x = 0
+        #   - End: Move to x = <image width>
+        #   - Return: Copy rectangle under box and save to next serial image name
+        #   - ESC: End program
+        when GDK_KEY_w | GDK_KEY_Left   { --$x }
+        when GDK_KEY_a | GDK_KEY_Up     { --$y }
+        when GDK_KEY_d | GDK_KEY_Right  { ++$x }
+        when GDK_KEY_s | GDK_KEY_Down   { ++$y }
+
+        when GDK_KEY_W                  { --$w }
+        when GDK_KEY_A                  { --$h }
+        when GDK_KEY_D                  { ++$w }
+        when GDK_KEY_S                  { ++$h }
+
+        when $event.state +& GDK_SHIFT_MASK {
+          when GDK_KEY_Left  { --$w }
+          when GDK_KEY_Up    { --$h }
+          when GDK_KEY_Right { ++$w }
+          when GDK_KEY_Down  { ++$h }
+        }
+
+        when GTK_KEY_Enter { saveRegion }
+
+        when GDK_KEY_Home  { $x = 0 }
+        when GDK_KEY_Left  { --$x   }
+        when GDK_KEY_Up    { --$y   }
+        when GDK_KEY_Right { ++$x   }
+        when GDK_KEY_Down  { ++$y   }
+        when GDK_KEY_End   { $x = E }
+      }
+    });
 
     $a.window.add($grid);
     $a.window.show-all;
