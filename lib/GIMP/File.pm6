@@ -14,7 +14,7 @@ class GIMP::File {
   has GimpImage $!this is built;
 
   method !resolveRunMode ($interactive, $noninteractive, $lastvals) {
-    X::GLib::InvalidArguments.new(
+    X::GLib::InvalidArgument.new(
       message => "You must use ONE of the following arguments: {
                   '' }<interactive>, <noninteractive> or <last>"
     ).throw unless [^^]($interactive, $noninteractive, $lastvals);
