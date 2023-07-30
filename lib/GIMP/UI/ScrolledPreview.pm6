@@ -3,7 +3,7 @@ use v6.c;
 use Method::Also;
 
 use GIMP::Raw::Types;
-use GIMP::Raw::ScrolledPreview;
+use GIMP::Raw::UI::ScrolledPreview;
 
 use GIMP::UI::Preview;
 
