@@ -31,10 +31,12 @@ class GimpDrawable       is repr<CPointer> does GLib::Roles::Pointers is export 
 class GimpImage          is repr<CPointer> does GLib::Roles::Pointers is export { }
 class GimpItem           is repr<CPointer> does GLib::Roles::Pointers is export { }
 class GimpLabelColor     is repr<CPointer> does GLib::Roles::Pointers is export { }
-class GimpLabelEntry     is repr<CPointer> does GLib::Roles::Pointers is export { }
 class GimpLabeled        is repr<CPointer> does GLib::Roles::Pointers is export { }
+class GimpLabelEntry     is repr<CPointer> does GLib::Roles::Pointers is export { }
+class GimpLabelSpin      is repr<CPointer> does GLib::Roles::Pointers is export { }
 class GimpLayer          is repr<CPointer> does GLib::Roles::Pointers is export { }
 class GimpMetadata       is repr<CPointer> does GLib::Roles::Pointers is export { }
+class GimpScaleEntry     is repr<CPointer> does GLib::Roles::Pointers is export { }
 class GimpSelection      is repr<CPointer> does GLib::Roles::Pointers is export { }
 class GimpVectors        is repr<CPointer> does GLib::Roles::Pointers is export { }
 class GPParam            is repr<CPointer> does GLib::Roles::Pointers is export { }
