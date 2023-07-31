@@ -9,6 +9,7 @@ use GIMP::Raw::Types;
 use GIMP::Raw::Image;
 
 use GLib::GList;
+use GIMP::Layer;
 use GIMP::File;
 
 use GLib::Roles::Implementor;
