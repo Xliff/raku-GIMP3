@@ -8,19 +8,20 @@ use GLib::Raw::Traits;
 use GIMP::Raw::Types;
 
 use GTK::Box;
-use GTK::Widget;
+use GTK::SpinButton;
 
 use GLib::Roles::Implementor;
 
 our subset GimpMemsizeEntryAncestry is export of Mu
   where GimpMemsizeEntry | GtkBoxAncestry;
 
+constant SPINBUTTON_VALUE_SHIFT = 10;
+
 class GIMP::UI::MemsizeEntry is GTK::Box {
   has GimpMemsizeEntry $!g-mse is implementor;
 
   submethod BUILD ( :$gimp-memsize-entry ) {
-    self.setGimpMemsizeEntry($gimp-memsize-entry)
-      if $gimp-memsize-entry
+    self.setGimpMemsizeEntry($gimp-memsize-entry) if $gimp-memsize-entry
   }
 
   method setGimpMemsizeEntry (GimpMemsizeEntryAncestry $_) {
@@ -56,28 +57,52 @@ class GIMP::UI::MemsizeEntry is GTK::Box {
     $o;
   }
   multi method new (
-    Num() :$default = 0.25,
-    Int() :$upper   = $*KERNEL.total-memory,
-    Int() :$value   = $upper * $default,
-    Int() :$lower   = 0,
+    Num() :default(:$d)                        = 0.25,
+    Num() :upper-default(:upper_default(:$ud)) = 0.5,
+    Num() :lower-default(:lower_default(:$ld)) = 0.0,
+    Int() :$upper                              = $*KERNEL.total-memory * $ud,
+    Int() :$value                              = $upper * $d,
+    Int() :$lower                              = $upper * $ld
   ) {
     samewith($value, $lower, $upper);
   }
   multi method new (Int() $value, Int() $lower, Int() $upper) {
     my guint64 ($v, $l, $u) = ($value, $lower, $upper);
 
-    gimp_memsize_entry_new($!g-mse, $lower, $upper);
+    my $gimp-memsize-entry = gimp_memsize_entry_new($v, $l, $u);
+
+    $gimp-memsize-entry ?? self.bless( :$gimp-memsize-entry ) !! Nil;
+  }
+
+  method value is rw is g-property {
+    Proxy.new:
+      FETCH => -> $     { self.get_value    },
+      STORE => -> $, \v { self.set_value(v) }
   }
 
   method value-changed is also<value_changed> {
     self.connect($!g-mse, 'value-changed');
   }
 
-  method get_spinbutton ( :$raw = False ) is also<get-spinbutton> {
-    ReturnWidget(
+  method get_spinbutton ( :$raw = False )
+    is also<
+      get-spinbutton
+      spinbutton
+    >
+  {
+    returnProperObject(
       gimp_memsize_entry_get_spinbutton($!g-mse),
-      $raw
+      $raw,
+      |GTK::SpinButton.getTypePair
     );
+  }
+
+  method upper {
+    self.get_spinbutton.adjustment.upper +< SPINBUTTON_VALUE_SHIFT;
+  }
+
+  method lower {
+    self.get_spinbutton.adjustment.lower +< SPINBUTTON_VALUE_SHIFT;
   }
 
   method get_type is also<get-type> {
