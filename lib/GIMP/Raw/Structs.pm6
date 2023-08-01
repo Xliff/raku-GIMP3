@@ -536,9 +536,28 @@ class GimpObjectArray is repr<CStruct> does GLib::Roles::Pointers is export {
 	has gboolean $!static_data;
 }
 
+# cw: It was a mistake not to offer read access for offset-x and offset-y,
+#     so let's make an effort to correct that, shall we?
+class GimpOffsetAreaPrivate is repr<CStruct> {
+  has gint    $.orig_width;
+  has gint    $.orig_height;
+  has gint    $.width;
+  has gint    $.height;
+  has gint    $.offset_x;
+  has gint    $.offset_y;
+  has gdouble $.display_ratio_x;
+  has gdouble $.display_ratio_y;
+}
+
 class GimpOffsetArea is repr<CStruct> does GLib::Roles::Pointers is export {
-	HAS GtkDrawingArea $!parent_instance;
-	has gpointer       $!priv           ;
+  HAS GtkDrawingAreaStruct  $!parent;
+  has GimpOffsetAreaPrivate $!private;
+
+	method offset_x { $!private.offset_x }
+	method offset_y { $!private.offset_y }
+
+  method offset-x { self.offset_x }
+  method offset-y { self.offset_y }
 }
 
 class GimpPDB is repr<CStruct> does GLib::Roles::Pointers is export {
