@@ -370,6 +370,13 @@ class GimpControllerEventValue is repr<CStruct> does GLib::Roles::Pointers is ex
 	has GValue                  $!value   ;
 }
 
+class GimpControllerEvent is repr<CUnion> does GLib::Roles::Pointers is export {
+  has GimpControllerEventType    $.type;
+	HAS GimpControllerEventAny     $.any;
+	HAS GimpControllerEventTrigger $.trigger;
+	HAS GimpControllerEventValue   $.value;
+}
+
 class GimpDialog is repr<CStruct> does GLib::Roles::Pointers is export {
 	HAS GtkDialog $!parent_instance;
 	has gpointer  $!priv           ;
