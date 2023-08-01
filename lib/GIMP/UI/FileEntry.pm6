@@ -54,6 +54,14 @@ class GIMP::UI::FileEntry is GTK::Box {
     $o;
   }
   multi method new (
+    Str() :$title                             = 'Select a file',
+    Str() :$filename                          = '',
+    Int() :dir(:dir-only(:$dir_only))         = False,
+    Int() :check(:check-valid(:$check_valid)) = True
+  ) {
+    samewith($title, $filename, $dir_only, $check_valid);
+  }
+  multi method new (
     Str() $title,
     Str() $filename,
     Int() $dir_only,
@@ -61,7 +69,7 @@ class GIMP::UI::FileEntry is GTK::Box {
   ) {
     my gboolean ($d, $c) = ($dir_only, $check_valid).map( *.so.Int );
 
-    my $gimp-file-entry = gimp_file_entry_new($!g-fe, $filename, $d, $c);
+    my $gimp-file-entry = gimp_file_entry_new($title, $filename, $d, $c);
 
     $gimp-file-entry ?? self.bless( :$gimp-file-entry ) !! Nil;
   }
