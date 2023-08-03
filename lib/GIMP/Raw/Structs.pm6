@@ -1,5 +1,6 @@
 use v6.c;
 
+use GLib::Raw::Traits;
 use GLib::Raw::Definitions;
 use GLib::Raw::Object;
 use GLib::Raw::Structs;
@@ -867,4 +868,153 @@ class GimpZoomModel is repr<CStruct> does GLib::Roles::Pointers is export {
 class GimpZoomPreview is repr<CStruct> does GLib::Roles::Pointers is export {
 	HAS GimpScrolledPreview $!parent_instance;
 	has gpointer            $!priv           ;
+}
+
+my %GMArrays;
+
+class GimpMatrix2 is repr('CStruct') is export {
+	#HAS gdouble            @.coeff[4] is CArray; # Typedef<gdouble>->«double»[2][2] coeff
+  has gdouble $.c0 is rw;
+  has gdouble $.c1 is rw;
+  has gdouble $.c2 is rw;
+  has gdouble $.c3 is rw;
+
+	submethod DESTROY {
+		%GMArrays{self.WHERE}:delete;
+	}
+
+	method Array {
+		unless %GMArrays{self.WHERE} {
+			my $a = [ 0e0 xx 2 ] xx 2;
+
+			$a[0;0] := $!c0;
+			$a[0;1] := $!c1;
+			$a[1;0] := $!c2;
+			$a[1;1] := $!c3;
+
+			%GMArrays{self.WHERE} = $a;
+		}
+
+		%GMArrays{self.WHERE}
+	}
+
+	method identity is static {
+		my $i = ::?CLASS.new;
+		(.c0, .c3) = 1e0 given $i;
+		$i;
+	}
+}
+
+class GimpMatrix3 is repr('CStruct') is export {
+	#HAS gdouble            @.coeff[9] is CArray; # Typedef<gdouble>->«double»[3][3] coeff
+  has gdouble $.c0 is rw;
+  has gdouble $.c1 is rw;
+  has gdouble $.c2 is rw;
+  has gdouble $.c3 is rw;
+  has gdouble $.c4 is rw;
+  has gdouble $.c5 is rw;
+  has gdouble $.c6 is rw;
+  has gdouble $.c7 is rw;
+  has gdouble $.c8 is rw;
+
+	submethod DESTROY {
+		%GMArrays{self.WHERE}:delete;
+	}
+
+	method Array {
+		unless %GMArrays{self.WHERE} {
+			my $a = [0e0 xx 3] xx 3;
+
+			$a[0;0] := $!c0;
+			$a[0;1] := $!c1;
+			$a[0;2] := $!c2;
+			$a[1;0] := $!c3;
+			$a[1;1] := $!c4;
+			$a[1;2] := $!c5;
+			$a[2;0] := $!c6;
+			$a[2;1] := $!c7;
+			$a[2;2] := $!c8;
+
+			%GMArrays{self.WHERE} = $a;
+		}
+
+		%GMArrays{self.WHERE}
+	}
+
+	method identity is static {
+		my $i = ::?CLASS.new;
+		(.c0, .c4, .c8) = 1e0 xx 3 given $i;
+		$i;
+	}
+}
+
+class GimpMatrix4 is repr('CStruct') is export {
+	#HAS gdouble            @.coeff[16] is CArray; # Typedef<gdouble>->«double»[4][4] coeff
+  has gdouble $.c0 is rw;
+  has gdouble $.c1 is rw;
+  has gdouble $.c2 is rw;
+  has gdouble $.c3 is rw;
+  has gdouble $.c4 is rw;
+  has gdouble $.c5 is rw;
+  has gdouble $.c6 is rw;
+  has gdouble $.c7 is rw;
+  has gdouble $.c8 is rw;
+  has gdouble $.c9 is rw;
+  has gdouble $.ca is rw;
+  has gdouble $.cb is rw;
+  has gdouble $.cc is rw;
+  has gdouble $.cd is rw;
+  has gdouble $.ce is rw;
+  has gdouble $.cf is rw;
+
+	method Array {
+		unless %GMArrays{self.WHERE} {
+			my $a = [ 0e0 xx 4 ] xx 4;
+
+			$a[0;0] := $!c0;
+			$a[0;1] := $!c1;
+			$a[0;2] := $!c2;
+			$a[0;3] := $!c3;
+			$a[1;0] := $!c4;
+			$a[1;1] := $!c5;
+			$a[1;2] := $!c6;
+			$a[1;3] := $!c7;
+			$a[2;0] := $!c8;
+			$a[2;1] := $!c9;
+			$a[2;2] := $!ca;
+			$a[2;3] := $!cb;
+			$a[3;0] := $!cc;
+			$a[3;1] := $!cd;
+			$a[3;2] := $!ce;
+			$a[3;3] := $!cf;
+
+			%GMArrays{self.WHERE} = $a;
+		}
+
+		%GMArrays{self.WHERE}
+	}
+
+  method identity is static {
+		my $i = ::?CLASS.new;
+    (.c0, .c5, .ca, .cf) = 1e0 xx 4 given $i;
+		$i;
+  }
+}
+
+class GimpVector2 is repr('CStruct') is export {
+	has gdouble            $.x is rw;
+	has gdouble            $.y is rw;
+}
+
+class GimpVector3 is repr('CStruct') is export {
+	has gdouble            $.x is rw;
+	has gdouble            $.y is rw;
+	has gdouble            $.z is rw;
+}
+
+class GimpVector4 is repr('CStruct') is export {
+	has gdouble            $.x is rw;
+	has gdouble            $.y is rw;
+	has gdouble            $.z is rw;
+	has gdouble            $.w is rw;
 }
