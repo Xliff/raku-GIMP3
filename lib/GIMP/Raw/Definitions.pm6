@@ -12,6 +12,7 @@ constant gimpcolor   is export = 'gimpcolor-3.0',v0;
 constant gimpconfig  is export = 'gimpconfig-3.0',v0;
 constant gimpthumb   is export = 'gimpthumb-3.0',v0;
 constant gimpwidgets is export = 'gimpwidgets-3.0',v0;
+constant gimpmath    is export = 'gimpmath-3.0',v0;
 
 constant GIMP_MIN_IMAGE_SIZE is export = 1;
 constant GIMP_MAX_IMAGE_SIZE is export = 524288;    #  2^19
