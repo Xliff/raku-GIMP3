@@ -1,22 +1,23 @@
 use v6.c;
 
+use GIMP::Raw::Types;
+
 use RandomColor;
 use Cairo;
 use GDK::Cairo;
+use GDK::KeySyms;
+use GDK::Pixbuf;
+use GDK::Rectangle;
 use GTK::Application;
-use GTK::DrawingArea;
 use GTK::FlowBox;
 use GTK::Grid;
 use GTK::Image;
-use GDK::Pixbuf;
-use GDK::Rectangle;
 use GTK::Statusbar;
-
-use GIMP::Raw::Types;
-
-use GDK::KeySyms;
+use GIMP::Image;
+use GIMP::Layer;
 use GIMP::UI::Button;
 use GIMP::UI::Ruler;
+use GIMP::UI::ZoomPreview;
 
 constant COORDS      = 1;
 constant COLOR_BATCH = 20;
@@ -38,7 +39,7 @@ class ColoredRectangle {
   }
 }
 
-my ($rollNum, $image, @new-pixbufs, @new-images, $fb); = (1);
+my ($rollNum, $pixbuf, $image, $layer, @new-pixbufs, @new-images, $fb) = (1);
 
 sub saveRegion {
   while $_ =  @rectangles.pop {
@@ -60,13 +61,14 @@ sub saveRegion {
 sub MAIN ($filename) {
   die "Could not find image file at `$filename`!" unless $filename.IO.r;
 
-  my $a = GTK::Application.new( title => 'org.genex.gimp.ruler' );
+  my $a = GTK::Application.new( title => 'org.genex.cutouts' );
 
   $a.activate.tap( -> *@a {
-    $image = GDK::Pixbuf.new-from-file($filename);
+    $pixbuf = GDK::Pixbuf.new-from-file($filename);
+    $layer  = GIMP::Layer.new-from-pixbuf($pixbuf);
 
     my $grid  = GTK::Grid.new;
-    my $da    = GTK::DrawingArea.new;
+    my $da    = GIMP::UI::ZoomPreview.new($layer);
     my $hr    = GIMP::UI::Ruler.new( :hr );
     my $vr    = GIMP::UI::Ruler.new( :vr );
     my $bb    = GTK::Box.new-hbox(10);
