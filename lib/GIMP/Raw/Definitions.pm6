@@ -42,3 +42,4 @@ class GimpSelection      is repr<CPointer> does GLib::Roles::Pointers is export 
 class GimpVectors        is repr<CPointer> does GLib::Roles::Pointers is export { }
 class GPParam            is repr<CPointer> does GLib::Roles::Pointers is export { }
 class GPParamDef         is repr<CPointer> does GLib::Roles::Pointers is export { }
+class GimpValueArray     is repr<CPointer> does GLib::Roles::Pointers is export { }
