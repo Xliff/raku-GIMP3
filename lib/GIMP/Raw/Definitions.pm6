@@ -38,6 +38,7 @@ class GimpLabelSpin      is repr<CPointer> does GLib::Roles::Pointers is export 
 class GimpLayer          is repr<CPointer> does GLib::Roles::Pointers is export { }
 class GimpMetadata       is repr<CPointer> does GLib::Roles::Pointers is export { }
 class GimpScaleEntry     is repr<CPointer> does GLib::Roles::Pointers is export { }
+class GimpScanner        is repr<CPointer> does GLib::Roles::Pointers is export { }
 class GimpSelection      is repr<CPointer> does GLib::Roles::Pointers is export { }
 class GimpVectors        is repr<CPointer> does GLib::Roles::Pointers is export { }
 class GPParam            is repr<CPointer> does GLib::Roles::Pointers is export { }
