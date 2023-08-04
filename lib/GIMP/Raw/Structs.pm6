@@ -874,23 +874,47 @@ my %GMArrays;
 
 class GimpMatrix2 is repr('CStruct') is export {
 	#HAS gdouble            @.coeff[4] is CArray; # Typedef<gdouble>->«double»[2][2] coeff
-  has gdouble $.c0 is rw;
-  has gdouble $.c1 is rw;
-  has gdouble $.c2 is rw;
-  has gdouble $.c3 is rw;
+  has gdouble $!c0;
+  has gdouble $!c1;
+  has gdouble $!c2;
+  has gdouble $!c3;
 
 	submethod DESTROY {
 		%GMArrays{self.WHERE}:delete;
+	}
+
+	method c0 is rw {
+		Proxy.new:
+			FETCH => -> $           { $!c0 },
+			STORE => -> $, Num() \v { $!c0 = v };
+	}
+
+	method c1 is rw {
+		Proxy.new:
+			FETCH => -> $           { $!c1 },
+			STORE => -> $, Num() \v { $!c1 = v };
+	}
+
+	method c2 is rw {
+		Proxy.new:
+			FETCH => -> $           { $!c2 },
+			STORE => -> $, Num() \v { $!c2 = v };
+	}
+
+	method c3 is rw {
+		Proxy.new:
+			FETCH => -> $           { $!c3 },
+			STORE => -> $, Num() \v { $!c3 = v };
 	}
 
 	method Array {
 		unless %GMArrays{self.WHERE} {
 			my $a = [ 0e0 xx 2 ] xx 2;
 
-			$a[0;0] := $!c0;
-			$a[0;1] := $!c1;
-			$a[1;0] := $!c2;
-			$a[1;1] := $!c3;
+			$a[0][0] := $!c0;
+			$a[0][1] := $!c1;
+			$a[1][0] := $!c2;
+			$a[1][1] := $!c3;
 
 			%GMArrays{self.WHERE} = $a;
 		}
@@ -902,6 +926,23 @@ class GimpMatrix2 is repr('CStruct') is export {
 		my $i = ::?CLASS.new;
 		(.c0, .c3) = 1e0 given $i;
 		$i;
+	}
+
+	multi method new (@a is copy) {
+		my $s = ::?CLASS.new;
+		my $sa = $s.Array;
+
+		# cw: Use array conversion check in GLib::Raw::Subs!
+		unless @a.head ~~ Array {
+			@a = @a.map( *.Num ).rotor(2);
+		}
+
+		$sa[0][0] = @a[0][0];
+		$sa[0][1] = @a[0][1];
+		$sa[1][0] = @a[1][0];
+		$sa[1][1] = @a[1][1];
+
+		$s;
 	}
 }
 
@@ -925,17 +966,17 @@ class GimpMatrix3 is repr('CStruct') is export {
 		unless %GMArrays{self.WHERE} {
 			my $a = [0e0 xx 3] xx 3;
 
-			$a[0;0] := $!c0;
-			$a[0;1] := $!c1;
-			$a[0;2] := $!c2;
-			$a[1;0] := $!c3;
-			$a[1;1] := $!c4;
-			$a[1;2] := $!c5;
-			$a[2;0] := $!c6;
-			$a[2;1] := $!c7;
-			$a[2;2] := $!c8;
+			$a[0][0] := $!c0;
+			$a[0][1] := $!c1;
+			$a[0][2] := $!c2;
+			$a[1][0] := $!c3;
+			$a[1][1] := $!c4;
+			$a[1][2] := $!c5;
+			$a[2][0] := $!c6;
+			$a[2][1] := $!c7;
+			$a[2][2] := $!c8;
 
-			%GMArrays{self.WHERE} = $a;
+			%GMArrays{self.WHERE} = $a.Array;
 		}
 
 		%GMArrays{self.WHERE}
@@ -945,6 +986,28 @@ class GimpMatrix3 is repr('CStruct') is export {
 		my $i = ::?CLASS.new;
 		(.c0, .c4, .c8) = 1e0 xx 3 given $i;
 		$i;
+	}
+
+	multi method new (@a is copy) {
+		my $s  = ::?CLASS.new;
+		my $sa = $s.Array;
+
+		# cw: Use array conversion check in GLib::Raw::Subs!
+	 	unless @a.head ~~ Array {
+			@a = @a.map( *.Num ).rotor(3);
+		}
+
+		$sa[0][0] = @a[0][0];
+    $sa[0][1] = @a[0][1];
+    $sa[0][2] = @a[0][2];
+    $sa[1][0] = @a[1][0];
+    $sa[1][1] = @a[1][1];
+    $sa[1][2] = @a[1][2];
+    $sa[2][0] = @a[2][0];
+    $sa[2][1] = @a[2][1];
+    $sa[2][2] = @a[2][2];
+
+		$s;
 	}
 }
 
@@ -971,22 +1034,22 @@ class GimpMatrix4 is repr('CStruct') is export {
 		unless %GMArrays{self.WHERE} {
 			my $a = [ 0e0 xx 4 ] xx 4;
 
-			$a[0;0] := $!c0;
-			$a[0;1] := $!c1;
-			$a[0;2] := $!c2;
-			$a[0;3] := $!c3;
-			$a[1;0] := $!c4;
-			$a[1;1] := $!c5;
-			$a[1;2] := $!c6;
-			$a[1;3] := $!c7;
-			$a[2;0] := $!c8;
-			$a[2;1] := $!c9;
-			$a[2;2] := $!ca;
-			$a[2;3] := $!cb;
-			$a[3;0] := $!cc;
-			$a[3;1] := $!cd;
-			$a[3;2] := $!ce;
-			$a[3;3] := $!cf;
+			$a[0][0] := $!c0;
+			$a[0][1] := $!c1;
+			$a[0][2] := $!c2;
+			$a[0][3] := $!c3;
+			$a[1][0] := $!c4;
+			$a[1][1] := $!c5;
+			$a[1][2] := $!c6;
+			$a[1][3] := $!c7;
+			$a[2][0] := $!c8;
+			$a[2][1] := $!c9;
+			$a[2][2] := $!ca;
+			$a[2][3] := $!cb;
+			$a[3][0] := $!cc;
+			$a[3][1] := $!cd;
+			$a[3][2] := $!ce;
+			$a[3][3] := $!cf;
 
 			%GMArrays{self.WHERE} = $a;
 		}
@@ -999,6 +1062,35 @@ class GimpMatrix4 is repr('CStruct') is export {
     (.c0, .c5, .ca, .cf) = 1e0 xx 4 given $i;
 		$i;
   }
+
+	multi method new (@a is copy) {
+		my $s  = ::?CLASS.new;
+		my $sa = $s.Array;
+
+		# cw: Use array conversion check in GLib::Raw::Subs!
+		if @a.head ~~ Array {
+			@a = @a.map( *.Num ).rotor(4);
+		}
+
+		$sa[0][0] = @a[0][0];
+		$sa[0][1] = @a[0][1];
+		$sa[0][2] = @a[0][2];
+		$sa[0][3] = @a[0][3];
+		$sa[1][0] = @a[1][0];
+		$sa[1][1] = @a[1][1];
+		$sa[1][2] = @a[1][2];
+		$sa[1][3] = @a[1][3];
+		$sa[2][0] = @a[2][0];
+		$sa[2][1] = @a[2][1];
+		$sa[2][2] = @a[2][2];
+		$sa[2][3] = @a[2][3];
+		$sa[3][0] = @a[3][0];
+		$sa[3][1] = @a[3][1];
+		$sa[3][2] = @a[3][2];
+		$sa[3][3] = @a[3][3];
+
+		$s;
+	}
 }
 
 class GimpVector2 is repr('CStruct') is export {
