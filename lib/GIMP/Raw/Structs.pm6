@@ -26,7 +26,10 @@ class GimpRGB is repr<CStruct> does GLib::Roles::Pointers is export {
 	method blue  is rw { $!b }
 	method alpha is rw { $!a }
 
-	method new (Num() $rr, Num() $gg, Num() $bb, Num() $aa) {
+	multi method new {
+		samewith(0, 0, 0);
+  }
+	multi method new (Num() $rr, Num() $gg, Num() $bb, Num() $aa = 1) {
 		my gdouble ($r, $g, $b, $a) = ($rr, $gg, $bb, $aa);
 
 		self.bless(:$r, :$g, :$b, :$a );
