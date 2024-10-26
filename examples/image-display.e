@@ -3,32 +3,21 @@ use v6.c;
 use GTK::Application;
 use GIMP::Env;
 use GIMP::Image;
-use GIMP::Display;
+
+# cw: As an extension or Plugin.
 
 sub MAIN ($filename) {
-  my $a = GTK::Application.new( title => 'org.genex.gimp.image-display' );
+  if GIMP::Image.file.load($filename, :interactive) -> $i {
+    say "I: { $i.^name } { $i.WHERE // '»NIL«' }";
 
-  $a.activate.tap(-> *@a {
-    CATCH {
-      default { .message.say; .backtrace.concise.say; }
-    }
+    #my $d = GIMP::Display.new($i);
 
-    say "F: { $filename.IO.r }";
+    #say "D: { $d.WHERE }";
 
-    if GIMP::Image.file.load($filename, :interactive) -> $i {
-      say "I: { $i.^name } { $i.WHERE // '»NIL«' }";
-
-      my $d = GIMP::Display.new($i);
-
-      say "D: { $d.WHERE }";
-
-      $d.present;
-      #$a.window.add($d);
-      #$a.window.show_all;
-    } else {
-      $a.quit( :gio )
-    }
-  });
-
-  $a.run;
+    #$d.present;
+    #$a.window.add($d);
+    #$a.window.show_all;
+  } else {
+    exit;
+  }
 }

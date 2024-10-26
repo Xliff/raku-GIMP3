@@ -19,7 +19,7 @@ $a.activate.tap(-> *@a {
 
   my $c = RandomColor.new( count =>1, format => 'color' );
   my $l = GIMP::UI::Color::Notebook.new(
-    color => GIMP::RGB.new( |$c.head.rgbd )
+    GIMP::RGB.new( |$c.head.rgbd )
   );
 
   say "Notebook: { +$l.GimpColorNotebook.p } / Object: { +$l.GObject.p }";
