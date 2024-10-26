@@ -46,10 +46,9 @@ INIT {
 	%GLOBAL-COLOR<GRAY_COLOR>        = GimpRGB.new(0.5, 0.5, 0.5, 1.0);
 	%GLOBAL-COLOR<BLACK_COLOR>       = GimpRGB.new(0.0, 0.0, 0.0, 1.0);
 
-	# cw: At INIT, .pairs is still HOT during iteration, so we have to save
-	#     of a stable copy before we loop.
-	my @pc = %GLOBAL-COLOR.pairs;
-	for @pc {
+	# cw: At INIT, .pairs is still HOT during iteration, so we have to
+	#     coerce to Array to obtain a loopable copy.
+	for %GLOBAL-COLOR.pairs.Array {
 		%GLOBAL-COLOR{ .key.subst('_', '-', :g) } = .value;
 	}
 }
@@ -496,7 +495,6 @@ class GimpIntRadioFrame is repr<CStruct> does GLib::Roles::Pointers is export {
 	HAS GimpFrame $!parent_instance;
 }
 
-
 class GimpLoadProcedure is repr<CStruct> does GLib::Roles::Pointers is export {
 	has GimpFileProcedure $!parent_instance;
 	has gpointer          $!priv           ;
@@ -872,7 +870,7 @@ class GimpZoomPreview is repr<CStruct> does GLib::Roles::Pointers is export {
 
 my %GMArrays;
 
-class GimpMatrix2 is repr('CStruct') is export {
+class GimpMatrix2 is repr<CStruct> does GLib::Roles::Pointers is export {
 	#HAS gdouble            @.coeff[4] is CArray; # Typedef<gdouble>->«double»[2][2] coeff
   has gdouble $!c0;
   has gdouble $!c1;
@@ -946,7 +944,7 @@ class GimpMatrix2 is repr('CStruct') is export {
 	}
 }
 
-class GimpMatrix3 is repr('CStruct') is export {
+class GimpMatrix3 is repr<CStruct> does GLib::Roles::Pointers is export {
 	#HAS gdouble            @.coeff[9] is CArray; # Typedef<gdouble>->«double»[3][3] coeff
   has gdouble $.c0 is rw;
   has gdouble $.c1 is rw;
@@ -1011,7 +1009,7 @@ class GimpMatrix3 is repr('CStruct') is export {
 	}
 }
 
-class GimpMatrix4 is repr('CStruct') is export {
+class GimpMatrix4 is repr<CStruct> does GLib::Roles::Pointers is export {
 	#HAS gdouble            @.coeff[16] is CArray; # Typedef<gdouble>->«double»[4][4] coeff
   has gdouble $.c0 is rw;
   has gdouble $.c1 is rw;
@@ -1093,18 +1091,18 @@ class GimpMatrix4 is repr('CStruct') is export {
 	}
 }
 
-class GimpVector2 is repr('CStruct') is export {
+class GimpVector2 is repr<CStruct> does GLib::Roles::Pointers is export {
 	has gdouble            $.x is rw;
 	has gdouble            $.y is rw;
 }
 
-class GimpVector3 is repr('CStruct') is export {
+class GimpVector3 is repr<CStruct> does GLib::Roles::Pointers is export {
 	has gdouble            $.x is rw;
 	has gdouble            $.y is rw;
 	has gdouble            $.z is rw;
 }
 
-class GimpVector4 is repr('CStruct') is export {
+class GimpVector4 is repr<CStruct> does GLib::Roles::Pointers is export {
 	has gdouble            $.x is rw;
 	has gdouble            $.y is rw;
 	has gdouble            $.z is rw;
