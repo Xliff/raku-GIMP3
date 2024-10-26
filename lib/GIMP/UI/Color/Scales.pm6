@@ -14,7 +14,7 @@ class GIMP::UI::Color::Scales is GIMP::UI::Color::Selector {
   has GimpColorScales $!g-cscales is implementor;
 
   submethod BUILD ( :$gimp-color-scales ) {
-    self.setGimpColorScales($gimp-color-scades) if $gimp-color-scaldes
+    self.setGimpColorScales($gimp-color-scales) if $gimp-color-scales
   }
 
   method setGimpColorScales (GimpColorScalesAncestry $_) {
@@ -45,7 +45,7 @@ class GIMP::UI::Color::Scales is GIMP::UI::Color::Selector {
   ) {
     return unless $gimp-color-scales;
 
-    my $o = self.bless( :$gimp-color-scaldes );
+    my $o = self.bless( :$gimp-color-scales );
     $o.ref if $ref;
     $o;
   }
