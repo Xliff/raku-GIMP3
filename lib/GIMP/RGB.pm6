@@ -382,7 +382,10 @@ class GIMP::RGB {
   }
 
   proto method rgb_to_cmyk (|)
-    is also<rgb-to-cmyk>
+    is also<
+      rgb-to-cmyk
+      cmyk
+    >
   { * }
 
   multi method rgb_to_cmyk (Num() $pullout) {
@@ -398,7 +401,10 @@ class GIMP::RGB {
   }
 
   proto method rgb_to_hsl (|)
-    is also<rgb-to-hsl>
+    is also<
+      rgb-to-hsl
+      hsl
+    >
   { * }
 
   multi method rgb_to_hsl {
@@ -412,7 +418,10 @@ class GIMP::RGB {
   }
 
   proto method rgb_to_hsv (|)
-    is also<rgb-to-hsv>
+    is also<
+      rgb-to-hsv
+      hsv
+    >
   { * }
 
   multi method rgb_to_hsv ( :$raw = False ) {
