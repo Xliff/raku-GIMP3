@@ -7,6 +7,7 @@ use GIMP::Raw::Types;
 use GIMP::Raw::UI::Color::Area;
 
 use GTK::DrawingArea;
+use GIMP::RGB;
 
 use GLib::Roles::Implementor;
 
@@ -73,6 +74,25 @@ class GIMP::UI::Color::Area is GTK::DrawingArea {
     $gimp-color-area ?? self.bless( :$gimp-color-area ) !! Nil;
   }
 
+  # Type: GimpRGB
+  method color ( :$raw = False ) is rw  is g-property {
+    my $gv = GLib::Value.new( GIMP::RGB.get_type );
+    Proxy.new(
+      FETCH => sub ($) {
+        self.prop_get('color', $gv);
+        propReturnObject(
+          $gv.boxed,
+          $raw,
+          |GIMP::RGB.getTypePair
+        );
+      },
+      STORE => -> $, GimpRGB() $val is copy {
+        $gv.boxed = $val;
+        self.prop_set('color', $gv);
+      }
+    );
+  }
+
   # Type: GdkModifierType
   method drag-mask is rw  is g-property is also<drag_mask> {
     my $gv = GLib::Value.new( GLib::Value.typeFromEnum(GdkModifierType) );
@@ -120,7 +140,7 @@ class GIMP::UI::Color::Area is GTK::DrawingArea {
     );
   }
 
-  method color-changed is also<color_changed> {
+  method Color-Changed is also<Color_Changed> {
     self.connect($!g-ca, 'color-changed');
   }
 
