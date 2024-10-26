@@ -13,7 +13,7 @@ use GLib::Roles::Implementor;
 our subset GimpFrameAncestry is export of Mu
   where GimpFrame | GtkFrameAncestry;
 
-class GIMP::Frame is GTK::Frame {
+class GIMP::UI::Frame is GTK::Frame {
   has GimpFrame $!g-f is implementor;
 
   submethod BUILD ( :$gimp-frame ) {
