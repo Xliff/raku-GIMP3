@@ -22,7 +22,6 @@ class GIMP::UI::Color::Selector is GTK::Box {
   }
 
   method setGimpColorSelector (GimpColorSelectorAncestry $_) {
-
     my $to-parent;
 
     $!g-cs = do {
@@ -207,7 +206,14 @@ class GIMP::UI::Color::Selector is GTK::Box {
     gimp_color_selector_set_channel($!g-cs, $channel);
   }
 
-  method set_color (GimpRGB() $rgb, GimpHSV() $hsv) is also<set-color> {
+  proto method set_color (|)
+    is also<set-color>
+  { * }
+
+  multi method set_color ($c, :$rgb is required where *.so) {
+    samewith($c, $c.hsv)
+  }
+  multi method set_color (GimpRGB() $rgb, GimpHSV() $hsv) {
     gimp_color_selector_set_color($!g-cs, $rgb, $hsv);
   }
 
