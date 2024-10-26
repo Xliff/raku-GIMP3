@@ -13,6 +13,7 @@ unit package GIMP::Raw::Types;
 
 need Cairo;
 need GLib::Raw::Definitions;
+need GLib::Raw::Debug;
 need GLib::Raw::Enums;
 need GLib::Raw::Exceptions;
 need GLib::Raw::Object;
