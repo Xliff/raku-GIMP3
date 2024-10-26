@@ -3,6 +3,7 @@ use v6.c;
 
 use lib 'scripts';
 
+use ScriptConfig;
 use GTKScripts;
 use LWP::Simple;
 #use Mojo::DOM:from<Perl5>;
@@ -78,12 +79,12 @@ sub MAIN (
   } else {
     $control = "{ %config<include-directory> }/{ $control }"
     	unless $control.starts-with('/');
-    
+
     unless (my $control-io = $control.IO).r {
 	say "Could not find file '{ $control }'";
 	exit;
     }
-    
+
     say "Reading from file '{ $control }'...";
 
     # If it's a readable file, we have to do things the (James) Hardway
@@ -143,10 +144,11 @@ sub MAIN (
   for %signals.pairs {
 
     given .value {
+      my $tmn =.<mn>.split('-').map( *.tc ).join('-');
       say qq:to/METH/;
         # Is originally:
         # { .<s-sig>.join(', ') } --> { .<rt> }
-        method { .<mn> } \{
+        method { $tmn } \{
           self.{ .<udm> ?? "connect({ .<v> }, '{ .<mn> }')"
                         !! "connect-{ .<mn> }({ .<v> })" };
         \}
@@ -219,7 +221,9 @@ sub MAIN (
     my \$hid;
     \%!signals-{ $name }\{\$signal\} //= do \{
       my \\𝒮 = Supplier.new;
-      \$hid = g-connect-{ .value<mn> }(\$obj, \$signal,
+      \$hid = g-connect-{ .value<mn> }(
+        \$obj,
+        \$signal,
         -> \${ $pp ?? ', ' !! ''}{ $pp }{ $ud } \{
           CATCH \{
             default \{ 𝒮.note(\$_) \}
@@ -229,7 +233,7 @@ sub MAIN (
         \},
         Pointer, 0
       );
-      [ 𝒮.Supply, \$obj, \$hid ];
+      [ self.create-signal-supply($signal, 𝒮), \$obj, \$hid ];
     \};
     \%!signals-{ $name }\{\$signal\}[0].tap(\&handler) with \&handler;
     \%!signals-{ $name }\{\$signal\}[0];
