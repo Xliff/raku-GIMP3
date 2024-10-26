@@ -12,6 +12,8 @@ use GLib::Roles::Implementor;
 # BOXED
 
 class GIMP::HSV {
+  also does GLib::Roles::Implementor;
+  
   has GimpHSV $!g-hsv is implementor handles<
     hue        h
     saturation s
