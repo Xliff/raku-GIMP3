@@ -1,6 +1,6 @@
 prefix=GIMP
 modules=GIMP::Raw::Structs,GIMP::Raw::Enums,GTK::Raw::Types,GTK::Compat::Types
 backups=backup,bitbucket
-include-directory=/usr/src/gimp
+include-directory=/usr/src/gimp/libgimpwidgets
 include-include=lib
 include-exclude=mesonBuild,app/
