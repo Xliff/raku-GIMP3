@@ -233,7 +233,7 @@ sub MAIN (
         \},
         Pointer, 0
       );
-      [ self.create-signal-supply($signal, 𝒮), \$obj, \$hid ];
+      [ self.create-signal-supply(\$signal, 𝒮), \$obj, \$hid ];
     \};
     \%!signals-{ $name }\{\$signal\}[0].tap(\&handler) with \&handler;
     \%!signals-{ $name }\{\$signal\}[0];
