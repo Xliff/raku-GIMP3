@@ -12,16 +12,28 @@ use GIMP::CMYK;
 use GIMP::HSV;
 use GIMP::HSL;
 
+use GLib::Roles::Implementor;
+
 # BOXED
 
 class GIMP::RGB {
-  has GimpRGB $!g-rgb is built handles<
+  also does GLib::Roles::Implementor;
+
+  has GimpRGB $!g-rgb is built is implementor handles<
     red   r
     green g
     blue  b
     alpha a
   >;
 
+  proto method new(|)
+  { * }
+
+  multi method new (GimpRGB $gimp-rgb, :$ref = False) {
+    return Nil unless $gimp-rgb;
+
+    self.bless( :$gimp-rgb );
+  }
   multi method new (
     Num() :r(:$red)   = 0e0,
     Num() :g(:$green) = 0e0,
@@ -32,7 +44,6 @@ class GIMP::RGB {
 
     $gimp-rgb ?? self.bless( :$gimp-rgb ) !! Nil;
   }
-
   multi method new (
     Num() $red,
     Num() $green,
@@ -432,6 +443,10 @@ class GIMP::RGB {
 
     gimp_rgb_to_hsv($!g-rgb, $hsv);
     propReturnObject( $hsv, $raw, GIMP::HSV.getTypePair )
+  }
+
+  method gist {
+    "GIMP::RGB.new( g-rgb => { $!g-rgb.gist } )"
   }
 
 }
