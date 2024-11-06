@@ -9,7 +9,7 @@ use GIMP::Raw::Enums;
 
 unit package GIMP::Raw::UI::Int::ComboBox;
 
-### /usr/src/gimp/libgimpwidgets/gimpwidgets.h
+### /usr/src/gimp/libgimpwidgets/gimpintcombobox.h
 
 sub gimp_int_combo_box_append (GimpIntComboBox $combo_box)
   is      native(gimpwidgets)
