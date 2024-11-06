@@ -55,13 +55,3 @@ sub gimp_int_store_new_array (
   is      native(gimpwidgets)
   is      export
 { * }
-
-# sub gimp_int_store_new_valist (
-#   Str     $first_label,
-#   gint    $first_value,
-#   va_list $values
-# )
-#   returns GtkListStore
-#   is      native(gimpwidgets)
-#   is      export
-# { * }
